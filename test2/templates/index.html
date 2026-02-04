@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Connexion émotionnelle</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+
+<h2>Connexion émotionnelle</h2>
+
+<input id="pseudo" placeholder="Pseudo">
+<br><br>
+
+<button onclick="join('triste')">😢 Triste</button>
+<button onclick="join('heureux')">😊 Heureux</button>
+<button onclick="join('stressé')">😰 Stressé</button>
+<button onclick="join('en_colere')">😡 Colère</button>
+
+<hr>
+
+<div id="chat"></div>
+<input id="msg" placeholder="Message">
+<button onclick="send()">Envoyer</button>
+
+<script>
+const socket = io();
+
+function join(emotion) {
+    const pseudo = document.getElementById("pseudo").value;
+    socket.emit("join", {
+        emotion: emotion,
+        pseudo: pseudo,
+        sid: socket.id
+    });
+}
+
+function send() {
+    const msg = document.getElementById("msg").value;
+    socket.emit("message", {
+        message: msg,
+        sid: socket.id
+    });
+    document.getElementById("msg").value = "";
+}
+
+socket.on("message", msg => {
+    document.getElementById("chat").innerHTML += "<p>" + msg + "</p>";
+});
+
+socket.on("status", msg => {
+    document.getElementById("chat").innerHTML += "<i>" + msg + "</i><br>";
+});
+</script>
+
+</body>
+</html>
