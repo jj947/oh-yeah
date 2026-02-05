@@ -1,71 +1,63 @@
-import socket
-import threading
+from flask import Flask
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from collections import defaultdict
 
-HOST = "0.0.0.0"
-PORT = 5000
+app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind((HOST, PORT))
-server.listen()
-
-print("Serveur lancé...")
-
-# emotion -> liste de sockets (max 2)
+# emotion -> liste de socket ids (max 2)
 rooms = defaultdict(list)
-
-# socket -> emotion
+# socket id -> emotion
 client_emotion = {}
 
 
-def handle_client(client_socket):
-    try:
-        # 1) recevoir l'émotion
-        emotion = client_socket.recv(1024).decode().strip()
-        client_emotion[client_socket] = emotion
-
-        # 2) rejoindre ou créer un salon
-        rooms[emotion].append(client_socket)
-
-        if len(rooms[emotion]) == 1:
-            client_socket.send(
-                "🕒 En attente d’une personne avec la même émotion...\n".encode()
-            )
-        elif len(rooms[emotion]) == 2:
-            for c in rooms[emotion]:
-                c.send("💬 Match trouvé ! Vous pouvez discuter.\n".encode())
-        else:
-            client_socket.send("❌ Salon plein.\n".encode())
-            client_socket.close()
-            return
-
-        # 3) chat
-        while True:
-            message = client_socket.recv(1024).decode()
-            if not message:
-                break
-
-            # envoyer uniquement à l'autre personne
-            for c in rooms[emotion]:
-                if c != client_socket:
-                    c.send(message.encode())
-
-    except:
-        pass
-    finally:
-        # 4) nettoyage
-        emotion = client_emotion.get(client_socket)
-        if emotion and client_socket in rooms[emotion]:
-            rooms[emotion].remove(client_socket)
-            if len(rooms[emotion]) == 0:
-                del rooms[emotion]
-
-        client_emotion.pop(client_socket, None)
-        client_socket.close()
-        print("Client déconnecté")
+@app.route("/")
+def home():
+    return "Serveur en ligne"
 
 
-while True:
-    client_socket, addr = server.accept()
-    print(f"Connexion de {addr}")
-    threading.Thread(target=handle_client, args=(client_socket,), daemon=True).start()
+@socketio.on("join")
+def handle_join(data):
+    emotion = data["emotion"]
+    sid = request.sid
+
+    rooms[emotion].append(sid)
+    client_emotion[sid] = emotion
+
+    join_room(emotion)
+
+    if len(rooms[emotion]) == 1:
+        emit("status", "🕒 En attente d’une personne avec la même émotion...")
+    elif len(rooms[emotion]) == 2:
+        emit("status", "💬 Match trouvé !", room=emotion)
+    else:
+        emit("status", "❌ Salon plein")
+        leave_room(emotion)
+
+
+@socketio.on("message")
+def handle_message(msg):
+    sid = request.sid
+    emotion = client_emotion.get(sid)
+
+    if not emotion or len(rooms[emotion]) < 2:
+        return
+
+    emit("message", msg, room=emotion, include_self=False)
+
+
+@socketio.on("disconnect")
+def handle_disconnect():
+    sid = request.sid
+    emotion = client_emotion.get(sid)
+
+    if emotion and sid in rooms[emotion]:
+        rooms[emotion].remove(sid)
+        if not rooms[emotion]:
+            del rooms[emotion]
+
+    client_emotion.pop(sid, None)
+
+
+if __name__ == "__main__":
+    socketio.run(app, host="0.0.0.0", port=5000)
