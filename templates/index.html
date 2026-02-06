@@ -41,8 +41,8 @@
 
 <script>
     const socket = io({
-        transports: ["websocket"]
-    });
+  transports: ["polling"]
+});
 
     function joinEmotion() {
         const emotion = document.getElementById("emotion").value;
@@ -64,3 +64,4 @@
 
 </body>
 </html>
+
