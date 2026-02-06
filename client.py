@@ -1,10 +1,10 @@
 import socketio
 
-sio = socketio.Client()
+sio = socketio.Client(transports=["websocket"])
 
 @sio.event
 def connect():
-    print("Connecté au serveur")
+    print("✅ Connecté au serveur")
 
 @sio.on("status")
 def status(msg):
@@ -16,7 +16,11 @@ def message(msg):
 
 emotion = input("Emotion : ")
 
-sio.connect("https://oh-yeah-1.onrender.com")
+sio.connect(
+    "https://oh-yeah-1.onrender.com",
+    socketio_path="socket.io"
+)
+
 sio.emit("join", {"emotion": emotion})
 
 while True:
