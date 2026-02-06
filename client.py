@@ -1,6 +1,6 @@
 import socketio
 
-sio = socketio.Client(transports=["websocket"])
+sio = socketio.Client()
 
 @sio.event
 def connect():
@@ -18,6 +18,7 @@ emotion = input("Emotion : ")
 
 sio.connect(
     "https://oh-yeah-1.onrender.com",
+    transports=["websocket"],
     socketio_path="socket.io"
 )
 
