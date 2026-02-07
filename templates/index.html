@@ -3,138 +3,96 @@
 <head>
   <meta charset="UTF-8" />
   <title>Oh Yeah</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
-      margin: 0;
-      padding: 0;
+      background: #111;
+      color: #fff;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      height: 100vh;
+      margin-top: 40px;
     }
-
-    #container {
-      background: #020617;
-      padding: 20px;
-      border-radius: 10px;
+    #messages {
       width: 90%;
       max-width: 400px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.6);
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 15px;
-    }
-
-    #status {
-      text-align: center;
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
-
-    #messages {
-      height: 200px;
+      height: 300px;
+      border: 1px solid #444;
+      padding: 10px;
       overflow-y: auto;
-      border: 1px solid #334155;
-      padding: 10px;
       margin-bottom: 10px;
-      background: #020617;
     }
-
-    .msg {
-      margin-bottom: 5px;
+    input, button, select {
+      width: 90%;
+      max-width: 400px;
+      margin: 5px 0;
+      padding: 8px;
     }
-
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border: none;
-      font-size: 16px;
-    }
-
-    input {
-      background: #020617;
-      color: #e5e7eb;
-      border: 1px solid #334155;
-    }
-
-    button {
-      background: #2563eb;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:active {
-      background: #1d4ed8;
+    #status {
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
 
-  <div id="container">
-    <h1>Oh Yeah 💬</h1>
-    <div id="status">Connexion…</div>
+  <h1>Oh Yeah</h1>
+  <div id="status">Connexion…</div>
 
-    <div id="messages"></div>
+  <select id="emotion">
+    <option value="">Choisis ton émotion</option>
+    <option value="heureux">😊 Heureux</option>
+    <option value="triste">😢 Triste</option>
+    <option value="enerve">😡 Énervé</option>
+    <option value="stress">😰 Stressé</option>
+  </select>
 
-    <input id="messageInput" placeholder="Ton message..." />
-    <button onclick="sendMessage()">Envoyer</button>
-  </div>
+  <div id="messages"></div>
 
-  <!-- Socket.IO -->
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <input id="message" placeholder="Ton message…" />
+  <button onclick="sendMessage()">Envoyer</button>
 
   <script>
-    const statusDiv = document.getElementById("status");
-    const messagesDiv = document.getElementById("messages");
-    const input = document.getElementById("messageInput");
+    const socket = io();
 
-    const socket = io({
-      path: "/socket.io",
-      transports: ["polling"],   // ← IMPORTANT pour mobile
-      secure: true
-    });
+    const status = document.getElementById("status");
+    const messagesDiv = document.getElementById("messages");
 
     socket.on("connect", () => {
-      statusDiv.textContent = "Connecté ✅";
-      statusDiv.style.color = "#22c55e";
+      status.innerHTML = "🟢 Connecté";
+      status.style.color = "lime";
     });
 
-    socket.on("connect_error", (err) => {
-      statusDiv.textContent = "Erreur de connexion ❌";
-      statusDiv.style.color = "#ef4444";
-      console.log(err);
+    socket.on("disconnect", () => {
+      status.innerHTML = "🔴 Déconnecté";
+      status.style.color = "red";
     });
 
-    socket.on("message", (msg) => {
-      const div = document.createElement("div");
-      div.className = "msg";
-      div.textContent = msg;
-      messagesDiv.appendChild(div);
+    socket.on("message", (data) => {
+      const p = document.createElement("p");
+      p.textContent = data;
+      messagesDiv.appendChild(p);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
 
     function sendMessage() {
-      const msg = input.value.trim();
-      if (msg === "") return;
+      const msgInput = document.getElementById("message");
+      const emotion = document.getElementById("emotion").value;
 
-      socket.send(msg);
-      input.value = "";
-    }
-
-    input.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        sendMessage();
+      if (!emotion) {
+        alert("Choisis une émotion !");
+        return;
       }
-    });
+
+      if (msgInput.value.trim() === "") return;
+
+      socket.emit("message", {
+        emotion: emotion,
+        text: msgInput.value
+      });
+
+      msgInput.value = "";
+    }
   </script>
 
 </body>
