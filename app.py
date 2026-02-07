@@ -40,6 +40,23 @@ def handle_message(data):
         broadcast=True
     )
 
+@socketio.on("disconnect")
+def handle_disconnect():
+    user = users.get(request.sid)
+
+    if user:
+        pseudo = user["pseudo"]
+        emotion = user["emotion"]
+
+        emit(
+            "message",
+            f"🔴 {pseudo} a quitté ({emotion})",
+            broadcast=True
+        )
+
+        del users[request.sid]
+
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
