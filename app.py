@@ -76,25 +76,35 @@ def typing(status):
 
 @socketio.on("disconnect")
 def handle_disconnect():
-    global waiting_user
+    global waiting_user, pairs
 
-    if waiting_user == request.sid:
+    sid = request.sid
+
+    # Si la personne était en attente
+    if waiting_user == sid:
         waiting_user = None
         return
 
-    for sid, partner in list(pairs.items()):
-        if partner == request.sid:
-            del pairs[sid]
+    # Si elle était en discussion
+    if sid in pairs:
+        partner_sid = pairs[sid]
 
-            socketio.emit(
-                "status",
-                "⚠️ Votre partenaire a quitté la discussion. Recherche d’un nouveau partenaire...",
-                room=sid
-            )
+        # Supprimer la paire des deux côtés
+        del pairs[sid]
+        if partner_sid in pairs:
+            del pairs[partner_sid]
 
-            waiting_user = sid
-            break
+        # Prévenir le partenaire
+        socketio.emit(
+            "status",
+            "⚠️ Votre partenaire a quitté la discussion. Recherche d’un nouveau partenaire...",
+            room=partner_sid
+        )
+
+        # Remettre le partenaire en attente
+        waiting_user = partner_sid
 
         del rooms[room]
+
 
 
