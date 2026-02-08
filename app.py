@@ -7,11 +7,11 @@ from flask_socketio import SocketIO, emit
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 users = {}
-rooms = {
-    "triste": [],
-    "content": [],
-    "colere": [],
-    "stresse": []
+waiting = {
+    "triste": None,
+    "content": None,
+    "colere": None,
+    "stresse": None
 }
 
 
@@ -21,29 +21,31 @@ def handle_join(data):
     emotion = data["emotion"]
     sid = request.sid
 
-    # Cherche un salon dispo (moins de 2 personnes)
-    for salon in rooms[emotion]:
-        if len(salon) < 2:
-            salon.append(sid)
-            users[sid] = {
-                "pseudo": pseudo,
-                "emotion": emotion,
-                "salon": salon
-            }
-            emit("message", f"🟢 {pseudo} a rejoint la discussion", room=sid)
-            return
+    # Personne n’attend → il attend
+    if waiting[emotion] is None:
+        waiting[emotion] = sid
+        users[sid] = {
+            "pseudo": pseudo,
+            "emotion": emotion,
+            "partner": None
+        }
+        emit("message", "⏳ En attente d’un partenaire...", room=sid)
+        return
 
-    # Aucun salon dispo → en créer un nouveau
-    new_salon = [sid]
-    rooms[emotion].append(new_salon)
+    # Quelqu’un attend → on les connecte
+    partner_sid = waiting[emotion]
+    waiting[emotion] = None
 
     users[sid] = {
         "pseudo": pseudo,
         "emotion": emotion,
-        "salon": new_salon
+        "partner": partner_sid
     }
 
-    emit("message", f"⏳ En attente d’un partenaire...", room=sid)
+    users[partner_sid]["partner"] = sid
+
+    emit("message", "🟢 Partenaire trouvé !", room=sid)
+    emit("message", "🟢 Partenaire trouvé !", room=partner_sid)
 
 
 @app.route("/")
@@ -56,17 +58,20 @@ def handle_message(data):
     if not user:
         return
 
+    partner = user["partner"]
+    if not partner:
+        emit("message", "⏳ Toujours en attente d’un partenaire...", room=request.sid)
+        return
+
     pseudo = user["pseudo"]
     emotion = user["emotion"]
-    salon = user["salon"]
     text = data["text"]
 
-    for sid in salon:
-        emit(
-            "message",
-            f"[{pseudo} | {emotion}] {text}",
-            room=sid
-        )
+    emit(
+        "message",
+        f"[{pseudo} | {emotion}] {text}",
+        room=partner
+    )
 
 @socketio.on("disconnect")
 def handle_disconnect():
@@ -74,24 +79,25 @@ def handle_disconnect():
     if not user:
         return
 
-    pseudo = user["pseudo"]
     emotion = user["emotion"]
-    salon = user["salon"]
+    partner = user["partner"]
+    pseudo = user["pseudo"]
 
-    if request.sid in salon:
-        salon.remove(request.sid)
+    # Si la personne attendait
+    if waiting[emotion] == request.sid:
+        waiting[emotion] = None
 
-    for sid in salon:
-        emit("message", f"🔴 {pseudo} a quitté la discussion", room=sid)
-
-    # Supprimer salon vide
-    if len(salon) == 0:
-        rooms[emotion].remove(salon)
+    # Si elle avait un partenaire
+    if partner and partner in users:
+        users[partner]["partner"] = None
+        emit("message", "🔴 Ton partenaire a quitté. En attente d’un nouveau...", room=partner)
+        waiting[emotion] = partner
 
     del users[request.sid]
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
 
 
