@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
@@ -36,6 +36,9 @@ def try_match(emotion):
 # -------------------------
 # CONNEXION
 # -------------------------
+@app.route("/")
+def home():
+    return render_template("index.html")
 
 @socketio.on("join")
 def join(data):
@@ -120,3 +123,4 @@ def disconnect():
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=10000)
+
