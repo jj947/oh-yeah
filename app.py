@@ -1,103 +1,122 @@
-import eventlet
-eventlet.monkey_patch()
-
-from flask import Flask, render_template, request
+from flask import Flask, request
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
-users = {}
+app.config["SECRET_KEY"] = "secret"
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# -------------------------
+# ÉTAT GLOBAL
+# -------------------------
+
+users = {}  # sid -> {pseudo, emotion, partner}
+
 waiting = {
-    "triste": None,
-    "content": None,
-    "colere": None,
-    "stresse": None
+    "triste": [],
+    "content": [],
+    "colere": [],
+    "stresse": []
 }
 
+# -------------------------
+# MATCHING
+# -------------------------
+
+def try_match(emotion):
+    while len(waiting[emotion]) >= 2:
+        a = waiting[emotion].pop(0)
+        b = waiting[emotion].pop(0)
+
+        users[a]["partner"] = b
+        users[b]["partner"] = a
+
+        emit("message", "🟢 Partenaire trouvé !", room=a)
+        emit("message", "🟢 Partenaire trouvé !", room=b)
+
+# -------------------------
+# CONNEXION
+# -------------------------
 
 @socketio.on("join")
-def handle_join(data):
+def join(data):
+    sid = request.sid
     pseudo = data["pseudo"]
     emotion = data["emotion"]
-    sid = request.sid
-
-    # Personne n’attend → il attend
-    if waiting[emotion] is None:
-        waiting[emotion] = sid
-        users[sid] = {
-            "pseudo": pseudo,
-            "emotion": emotion,
-            "partner": None
-        }
-        emit("message", "⏳ En attente d’un partenaire...", room=sid)
-        return
-
-    # Quelqu’un attend → on les connecte
-    partner_sid = waiting[emotion]
-    waiting[emotion] = None
 
     users[sid] = {
         "pseudo": pseudo,
         "emotion": emotion,
-        "partner": partner_sid
+        "partner": None
     }
 
-    users[partner_sid]["partner"] = sid
+    waiting[emotion].append(sid)
+    emit("message", "⏳ En attente d’un partenaire...", room=sid)
 
-    emit("message", "🟢 Partenaire trouvé !", room=sid)
-    emit("message", "🟢 Partenaire trouvé !", room=partner_sid)
+    try_match(emotion)
 
-
-@app.route("/")
-def index():
-    return render_template("index.html")
+# -------------------------
+# MESSAGE
+# -------------------------
 
 @socketio.on("message")
 def handle_message(data):
-    user = users.get(request.sid)
+    sid = request.sid
+    user = users.get(sid)
+
     if not user:
         return
 
-    partner = user["partner"]
-    if not partner:
-        emit("message", "⏳ Toujours en attente d’un partenaire...", room=request.sid)
-        return
-
+    text = data["text"]
     pseudo = user["pseudo"]
     emotion = user["emotion"]
-    text = data["text"]
+    partner = user["partner"]
 
-    emit(
-        "message",
-        f"[{pseudo} | {emotion}] {text}",
-        room=partner
-    )
+    msg = f"[{pseudo} | {emotion}] {text}"
+
+    # afficher chez soi
+    emit("message", msg, room=sid)
+
+    # envoyer au partenaire
+    if partner:
+        emit("message", msg, room=partner)
+
+# -------------------------
+# DÉCONNEXION
+# -------------------------
 
 @socketio.on("disconnect")
-def handle_disconnect():
-    user = users.get(request.sid)
+def disconnect():
+    sid = request.sid
+    user = users.get(sid)
+
     if not user:
         return
 
     emotion = user["emotion"]
     partner = user["partner"]
-    pseudo = user["pseudo"]
 
-    # Si la personne attendait
-    if waiting[emotion] == request.sid:
-        waiting[emotion] = None
+    # retirer de la file d'attente si besoin
+    if sid in waiting[emotion]:
+        waiting[emotion].remove(sid)
 
-    # Si elle avait un partenaire
+    # gérer le partenaire
     if partner and partner in users:
         users[partner]["partner"] = None
-        emit("message", "🔴 Ton partenaire a quitté. En attente d’un nouveau...", room=partner)
-        waiting[emotion] = partner
+        waiting[emotion].append(partner)
 
-    del users[request.sid]
+        emit(
+            "message",
+            "🔴 Ton partenaire a quitté. En attente d’un nouveau...",
+            room=partner
+        )
+
+        try_match(emotion)
+
+    del users[sid]
+
+# -------------------------
+# LANCEMENT
+# -------------------------
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000)
-
-
-
-
+    socketio.run(app, host="0.0.0.0", port=10000)
