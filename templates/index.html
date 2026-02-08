@@ -215,27 +215,33 @@
   
  socket.on("status", msg => {
   const status = document.getElementById("status");
-  status.innerText = msg;
 
+  status.innerText = msg;
   status.classList.remove("match-found");
 
   if (msg.includes("🎉")) {
-    status.style.color = "#38a169"; // vert
+    status.style.color = "#38a169";
 
-    // animation
-    void status.offsetWidth; // reset animation
+    void status.offsetWidth;
     status.classList.add("match-found");
 
-    // son
-    const sound = document.getElementById("matchSound");
-    sound.currentTime = 0;
-    sound.play().catch(() => {});
-  } 
+    document.getElementById("matchSound").play().catch(() => {});
+  }
   else if (msg.includes("⚠️")) {
-    status.style.color = "#e53e3e"; // rouge
-  } 
+    status.style.color = "#e53e3e";
+
+    status.animate(
+      [
+        { transform: "translateX(0)" },
+        { transform: "translateX(-6px)" },
+        { transform: "translateX(6px)" },
+        { transform: "translateX(0)" }
+      ],
+      { duration: 300 }
+    );
+  }
   else {
-    status.style.color = "#dd6b20"; // orange
+    status.style.color = "#dd6b20";
   }
 });
 
@@ -249,3 +255,4 @@ socket.on("connected", () => {
 </audio>
 </body>
 </html>
+
