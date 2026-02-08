@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <title>Oh Yeah</title>
+  <div id="status" style="
+  text-align:center;
+  margin-bottom:8px;
+  font-weight:600;
+  color:#e53e3e;
+"></div>
   <div id="status" style="color:#e53e3e; text-align:center; margin-bottom:5px;"></div>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
@@ -190,7 +196,16 @@
   });
   
   socket.on("status", msg => {
-  document.getElementById("status").innerText = msg;
+  const status = document.getElementById("status");
+  status.innerText = msg;
+
+  if (msg.includes("🎉")) {
+    status.style.color = "#38a169"; // vert
+  } else if (msg.includes("⚠️")) {
+    status.style.color = "#e53e3e"; // rouge
+  } else {
+    status.style.color = "#dd6b20"; // orange attente
+  }
 });
 
 socket.on("connected", () => {
@@ -201,4 +216,5 @@ socket.on("connected", () => {
 
 </body>
 </html>
+
 
