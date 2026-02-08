@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Oh Yeah</title>
+  <div id="status" style="color:#e53e3e; text-align:center; margin-bottom:5px;"></div>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
   <style>
@@ -187,7 +188,17 @@
   socket.on("typing", status => {
     document.getElementById("typing").style.display = status ? "block" : "none";
   });
+  
+  socket.on("status", msg => {
+  document.getElementById("status").innerText = msg;
+});
+
+socket.on("connected", () => {
+  document.getElementById("status").innerText = "";
+});
+
 </script>
 
 </body>
 </html>
+
