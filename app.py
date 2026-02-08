@@ -75,28 +75,26 @@ def typing(status):
 
 
 @socketio.on("disconnect")
-def disconnect():
-    sid = request.sid
+def handle_disconnect():
+    global waiting_user
 
-    # retirer des files d’attente
-    for emotion in waiting:
-        if sid in waiting[emotion]:
-            waiting[emotion].remove(sid)
-
-    room = user_room.pop(sid, None)
-    if not room:
+    if waiting_user == request.sid:
+        waiting_user = None
         return
 
-    if room in rooms:
-        for other in rooms[room]:
-            if other != sid:
-                leave_room(room, sid=other)
-                emit("status", "⚠️ Ton partenaire a quitté la discussion.", to=other)
+    for sid, partner in list(pairs.items()):
+        if partner == request.sid:
+            del pairs[sid]
 
-                # remettre l’autre en attente
-                emotion = room.split("_")[0]
-                waiting.setdefault(emotion, []).append(other)
-                try_match(emotion)
+            socketio.emit(
+                "status",
+                "⚠️ Votre partenaire a quitté la discussion. Recherche d’un nouveau partenaire...",
+                room=sid
+            )
+
+            waiting_user = sid
+            break
 
         del rooms[room]
+
 
