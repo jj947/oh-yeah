@@ -1,70 +1,100 @@
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import uuid
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-waiting_user = None
+# { emotion: [sid1, sid2, sid3...] }
+waiting = {}
+
+# { sid: room }
+user_room = {}
+
+# { room: [sid1, sid2] }
 rooms = {}
+
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
+
 @socketio.on("join")
 def join(data):
-    global waiting_user
-
-    sid = data["sid"]
-    pseudo = data["pseudo"]
     emotion = data["emotion"]
+    pseudo = data["pseudo"]
+    sid = request.sid
 
-    if waiting_user is None:
-        waiting_user = {
-            "sid": sid,
-            "pseudo": pseudo,
-            "emotion": emotion
-        }
-        emit("waiting")
-    else:
-        room_id = str(uuid.uuid4())
+    if emotion not in waiting:
+        waiting[emotion] = []
 
-        rooms[room_id] = {
-            "users": [waiting_user["sid"], sid],
-            "emotion": waiting_user["emotion"]
-        }
+    waiting[emotion].append(sid)
 
-        emit("joined", {
-            "room": room_id,
-            "emotion": rooms[room_id]["emotion"]
-        }, to=waiting_user["sid"])
+    emit("status", "En attente d’un partenaire...", to=sid)
 
-        emit("joined", {
-            "room": room_id,
-            "emotion": rooms[room_id]["emotion"]
-        }, to=sid)
+    try_match(emotion)
 
-        waiting_user = None
+
+def try_match(emotion):
+    while len(waiting[emotion]) >= 2:
+        sid1 = waiting[emotion].pop(0)
+        sid2 = waiting[emotion].pop(0)
+
+        room = f"{emotion}_{uuid.uuid4().hex[:6]}"
+        rooms[room] = [sid1, sid2]
+
+        user_room[sid1] = room
+        user_room[sid2] = room
+
+        join_room(room, sid=sid1)
+        join_room(room, sid=sid2)
+
+        emit("connected", to=room)
+
 
 @socketio.on("message")
-def message(data):
-    room = data["room"]
-    emit("message", data, to=rooms[room]["users"])
+def message(msg):
+    sid = request.sid
+    room = user_room.get(sid)
+    if not room:
+        return
+
+    emit("message", {
+        "pseudo": "Partenaire",
+        "message": msg
+    }, to=room, include_self=False)
+
+
+@socketio.on("typing")
+def typing(status):
+    room = user_room.get(request.sid)
+    if room:
+        emit("typing", status, to=room, include_self=False)
+
 
 @socketio.on("disconnect")
 def disconnect():
-    global waiting_user
+    sid = request.sid
 
-    sid = None
-    for room_id, room in list(rooms.items()):
-        if request.sid in room["users"]:
-            room["users"].remove(request.sid)
-            del rooms[room_id]
-            break
+    # retirer des files d’attente
+    for emotion in waiting:
+        if sid in waiting[emotion]:
+            waiting[emotion].remove(sid)
 
-    if waiting_user and waiting_user["sid"] == request.sid:
-        waiting_user = None
+    room = user_room.pop(sid, None)
+    if not room:
+        return
 
-if __name__ == "__main__":
-    socketio.run(app)
+    if room in rooms:
+        for other in rooms[room]:
+            if other != sid:
+                leave_room(room, sid=other)
+                emit("status", "Ton partenaire a quitté. Recherche en cours…", to=other)
+
+                # remettre l’autre en attente
+                emotion = room.split("_")[0]
+                waiting.setdefault(emotion, []).append(other)
+                try_match(emotion)
+
+        del rooms[room]
