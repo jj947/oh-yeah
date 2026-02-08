@@ -51,6 +51,7 @@ def try_match(emotion):
         join_room(room, sid=sid2)
 
         emit("connected", to=room)
+        emit("status", "🎉 Partenaire trouvé ! Vous pouvez discuter.", to=room)
 
 
 @socketio.on("message")
@@ -90,7 +91,7 @@ def disconnect():
         for other in rooms[room]:
             if other != sid:
                 leave_room(room, sid=other)
-                emit("status", "Ton partenaire a quitté. Recherche en cours…", to=other)
+                emit("status", "⚠️ Ton partenaire a quitté la discussion.", to=other)
 
                 # remettre l’autre en attente
                 emotion = room.split("_")[0]
@@ -98,3 +99,4 @@ def disconnect():
                 try_match(emotion)
 
         del rooms[room]
+
