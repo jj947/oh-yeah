@@ -3,152 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <title>Oh Yeah</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Socket.IO -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
     <style>
         body {
             font-family: Arial, sans-serif;
             background: #111;
             color: white;
-            margin: 0;
-            padding: 0;
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
         }
-
-        h1 {
-            text-align: center;
-            margin-top: 20px;
+        #chat {
+            width: 350px;
         }
-
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 16px;
-        }
-
-        button {
-            background: #00ff99;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        button:hover {
-            background: #00cc77;
-        }
-
         #messages {
-            background: #222;
-            padding: 10px;
+            border: 1px solid #444;
             height: 300px;
             overflow-y: auto;
-            margin-top: 15px;
-            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #000;
         }
-
-        .message {
-            margin-bottom: 8px;
+        .me {
+            color: #4caf50;
         }
-
         .system {
-            color: #aaa;
+            color: #ff5252;
             font-style: italic;
         }
     </style>
 </head>
 <body>
 
-<h1>Oh Yeah</h1>
+<div id="chat">
+    <h2>Oh Yeah</h2>
 
-<div class="container">
+    <input id="pseudo" placeholder="Ton pseudo">
+    <button onclick="join()">Entrer</button>
 
-    <!-- ÉCRAN DE CONNEXION -->
-    <div id="login">
-        <input type="text" id="pseudo" placeholder="Choisis un pseudo">
-        
-        <select id="emotion">
-            <option value="">Choisis ton émotion</option>
-            <option value="triste">😢 Triste</option>
-            <option value="content">😊 Content</option>
-            <option value="colere">😡 En colère</option>
-            <option value="stresse">😰 Stressé</option>
-        </select>
+    <div id="messages"></div>
 
-        <button onclick="join()">Rejoindre</button>
-    </div>
-
-    <!-- CHAT -->
-    <div id="chat" class="hidden">
-        <div id="messages"></div>
-
-        <input type="text" id="messageInput" placeholder="Écris ton message">
-        <button onclick="sendMessage()">Envoyer</button>
-    </div>
-
+    <input id="input" placeholder="Message">
+    <button onclick="send()">Envoyer</button>
 </div>
 
 <script>
     const socket = io();
-
-    const loginDiv = document.getElementById("login");
-    const chatDiv = document.getElementById("chat");
-    const messagesDiv = document.getElementById("messages");
+    let myPseudo = "";
 
     function join() {
-        const pseudo = document.getElementById("pseudo").value.trim();
-        const emotion = document.getElementById("emotion").value;
-
-        if (!pseudo || !emotion) {
-            alert("Pseudo et émotion obligatoires");
-            return;
-        }
-
-        socket.emit("join", {
-            pseudo: pseudo,
-            emotion: emotion
-        });
-
-        loginDiv.classList.add("hidden");
-        chatDiv.classList.remove("hidden");
+        myPseudo = document.getElementById("pseudo").value;
+        socket.emit("join", { pseudo: myPseudo });
     }
 
-    function sendMessage() {
-        const input = document.getElementById("messageInput");
-        const text = input.value.trim();
+    function send() {
+        const input = document.getElementById("input");
+        const msg = input.value;
+        if (!msg) return;
 
-        if (!text) return;
-
-        socket.emit("message", {
-            text: text
-        });
-
+        socket.emit("message", { text: msg });
         input.value = "";
     }
 
-    socket.on("message", (msg) => {
+    socket.on("message", data => {
         const div = document.createElement("div");
-        div.className = "message";
+        div.textContent = data.pseudo + " : " + data.text;
+        if (data.pseudo === myPseudo) div.classList.add("me");
+        document.getElementById("messages").appendChild(div);
+    });
 
-        if (msg.startsWith("🟢")) {
-            div.classList.add("system");
-        }
-
+    socket.on("system", msg => {
+        const div = document.createElement("div");
         div.textContent = msg;
-        messagesDiv.appendChild(div);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        div.classList.add("system");
+        document.getElementById("messages").appendChild(div);
     });
 </script>
 
