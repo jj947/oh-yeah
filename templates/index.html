@@ -1,258 +1,107 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Oh Yeah</title>
-  <div id="status" style="
-  text-align:center;
-  margin-bottom:8px;
-  font-weight:600;
-  color:#e53e3e;
-"></div>
-  <div id="status" style="color:#e53e3e; text-align:center; margin-bottom:5px;"></div>
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
-  <style>
-    @keyframes pulseGlow {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 rgba(72, 187, 120, 0.0);
-  }
-  50% {
-    transform: scale(1.03);
-    box-shadow: 0 0 25px rgba(72, 187, 120, 0.7);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 rgba(72, 187, 120, 0.0);
-  }
-}
-
-.match-found {
-  animation: pulseGlow 0.6s ease-in-out 2;
-}
-
-    body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #app {
-      width: 95%;
-      max-width: 420px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      background: #5a67d8;
-      color: white;
-      text-align: center;
-      padding: 15px;
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    #login, #chat {
-      padding: 15px;
-      display: none;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    input, select, button {
-      padding: 10px;
-      margin: 6px 0;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-
-    button {
-      background: #5a67d8;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #434190;
-    }
-
-    #messages {
-      flex: 1;
-      overflow-y: auto;
-      margin-bottom: 8px;
-    }
-
-    .message {
-      padding: 8px 12px;
-      margin: 6px 0;
-      border-radius: 12px;
-      max-width: 80%;
-      animation: fadeIn 0.25s ease;
-      word-wrap: break-word;
-    }
-
-    .me {
-      background: #d1fae5;
-      align-self: flex-end;
-    }
-
-    .other {
-      background: #edf2f7;
-      align-self: flex-start;
-    }
-
-    #typing {
-      font-style: italic;
-      font-size: 13px;
-      color: #666;
-      display: none;
-      margin-bottom: 4px;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Oh Yeah</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        #box {
+            max-width: 400px;
+            margin: 40px auto;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 15px;
+        }
+        input, select, button {
+            width: 90%;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 10px;
+            border: none;
+        }
+        #chat {
+            display: none;
+        }
+        #messages {
+            height: 200px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .status {
+            color: yellow;
+            font-size: 14px;
+            margin: 5px;
+        }
+    </style>
 </head>
 <body>
 
-<div id="app">
-  <header>Oh Yeah</header>
+<div id="box">
+    <h1>Oh Yeah 😎</h1>
 
-  <!-- LOGIN -->
-  <div id="login">
-    <input id="pseudo" placeholder="Choisis un pseudo">
-    <select id="emotion">
-      <option value="">Choisis ton émotion</option>
-      <option value="triste">😢 Triste</option>
-      <option value="heureux">😊 Heureux</option>
-      <option value="colere">😡 En colère</option>
-      <option value="neutre">😐 Neutre</option>
-    </select>
-    <button onclick="join()">Rejoindre</button>
-  </div>
+    <div id="login">
+        <input id="username" placeholder="Ton pseudo">
+        <select id="emotion">
+            <option value="joyeux">😊 Joyeux</option>
+            <option value="triste">😢 Triste</option>
+            <option value="enerve">😡 Énervé</option>
+            <option value="calme">😌 Calme</option>
+        </select>
+        <button onclick="join()">Rejoindre</button>
+    </div>
 
-  <!-- CHAT -->
-  <div id="chat">
-    <div id="messages"></div>
-    <div id="typing">Quelqu’un est en train d’écrire…</div>
-
-    <input id="message" placeholder="Écris un message…">
-    <button onclick="sendMessage()">Envoyer</button>
-  </div>
+    <div id="chat">
+        <div class="status" id="status"></div>
+        <div id="messages"></div>
+        <input id="msg" placeholder="Message">
+        <button onclick="send()">Envoyer</button>
+    </div>
 </div>
 
 <script>
-  const socket = io();
-  let pseudo = "";
-  let typingTimeout;
+    const socket = io();
+    const statusDiv = document.getElementById("status");
+    const messagesDiv = document.getElementById("messages");
 
-  document.getElementById("login").style.display = "flex";
+    function join() {
+        const username = document.getElementById("username").value;
+        const emotion = document.getElementById("emotion").value;
 
-  function join() {
-    pseudo = document.getElementById("pseudo").value;
-    const emotion = document.getElementById("emotion").value;
+        socket.emit("join", { username, emotion });
 
-    if (!pseudo || !emotion) {
-      alert("Choisis un pseudo et une émotion");
-      return;
+        document.getElementById("login").style.display = "none";
+        document.getElementById("chat").style.display = "block";
     }
 
-    socket.emit("join", { pseudo, emotion });
+    function send() {
+        const msg = document.getElementById("msg").value;
+        if (msg.trim() !== "") {
+            socket.emit("message", { message: msg });
+            messagesDiv.innerHTML += `<div><b>Moi :</b> ${msg}</div>`;
+            document.getElementById("msg").value = "";
+        }
+    }
 
-    document.getElementById("login").style.display = "none";
-    document.getElementById("chat").style.display = "flex";
-  }
+    socket.on("message", data => {
+        messagesDiv.innerHTML += `<div><b>${data.from} :</b> ${data.message}</div>`;
+    });
 
-  function sendMessage() {
-    const input = document.getElementById("message");
-    if (input.value.trim() === "") return;
-
-    socket.emit("message", input.value);
-    addMessage("Moi", input.value, true);
-    input.value = "";
-    socket.emit("typing", false);
-  }
-
-  function addMessage(author, text, me=false) {
-    const div = document.createElement("div");
-    div.classList.add("message");
-    div.classList.add(me ? "me" : "other");
-    div.innerHTML = `<strong>${author} :</strong> ${text}`;
-    document.getElementById("messages").appendChild(div);
-    document.getElementById("messages").scrollTop = 999999;
-  }
-
-  socket.on("message", data => {
-    addMessage(data.pseudo, data.message);
-  });
-
-  const input = document.getElementById("message");
-  input.addEventListener("input", () => {
-    socket.emit("typing", true);
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-      socket.emit("typing", false);
-    }, 1000);
-  });
-
-  socket.on("typing", status => {
-    document.getElementById("typing").style.display = status ? "block" : "none";
-  });
-  
- socket.on("status", msg => {
-  const status = document.getElementById("status");
-
-  status.innerText = msg;
-  status.classList.remove("match-found");
-
-  if (msg.includes("🎉")) {
-    status.style.color = "#38a169";
-
-    void status.offsetWidth;
-    status.classList.add("match-found");
-
-    document.getElementById("matchSound").play().catch(() => {});
-  }
-  else if (msg.includes("⚠️")) {
-    status.style.color = "#e53e3e";
-
-    status.animate(
-      [
-        { transform: "translateX(0)" },
-        { transform: "translateX(-6px)" },
-        { transform: "translateX(6px)" },
-        { transform: "translateX(0)" }
-      ],
-      { duration: 300 }
-    );
-  }
-  else {
-    status.style.color = "#dd6b20";
-  }
-});
-
-socket.on("connected", () => {
-  document.getElementById("status").innerText = "";
-});
-
+    socket.on("status", msg => {
+        statusDiv.innerText = msg;
+    });
 </script>
-<audio id="matchSound" preload="auto">
-  <source src="https://assets.mixkit.co/active_storage/sfx/2186/2186-preview.mp3" type="audio/mpeg">
-</audio>
+
 </body>
 </html>
-
