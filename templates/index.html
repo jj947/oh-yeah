@@ -9,75 +9,102 @@
             font-family: Arial, sans-serif;
             background: #111;
             color: white;
-            display: flex;
-            justify-content: center;
-            margin-top: 50px;
+            text-align: center;
         }
         #chat {
-            width: 350px;
+            display: none;
         }
         #messages {
-            border: 1px solid #444;
             height: 300px;
             overflow-y: auto;
+            border: 1px solid #444;
             padding: 10px;
             margin-bottom: 10px;
-            background: #000;
         }
-        .me {
-            color: #4caf50;
-        }
-        .system {
-            color: #ff5252;
-            font-style: italic;
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
         }
     </style>
 </head>
 <body>
 
+<h1>Oh Yeah</h1>
+
+<div id="login">
+    <input id="pseudo" placeholder="Ton pseudo"><br>
+    <select id="emotion">
+        <option value="😊">Heureux</option>
+        <option value="😢">Triste</option>
+        <option value="😡">Énervé</option>
+        <option value="😐">Neutre</option>
+    </select><br>
+    <button onclick="join()">Rejoindre</button>
+</div>
+
+<div id="waiting" style="display:none;">
+    <p>En attente d’un autre utilisateur...</p>
+</div>
+
 <div id="chat">
-    <h2>Oh Yeah</h2>
-
-    <input id="pseudo" placeholder="Ton pseudo">
-    <button onclick="join()">Entrer</button>
-
+    <h3 id="roomEmotion"></h3>
     <div id="messages"></div>
-
-    <input id="input" placeholder="Message">
+    <input id="msg" placeholder="Message">
     <button onclick="send()">Envoyer</button>
 </div>
 
 <script>
-    const socket = io();
-    let myPseudo = "";
+const socket = io();
+let room = "";
+let emotion = "";
+let pseudo = "";
 
-    function join() {
-        myPseudo = document.getElementById("pseudo").value;
-        socket.emit("join", { pseudo: myPseudo });
-    }
+function join() {
+    pseudo = document.getElementById("pseudo").value;
+    emotion = document.getElementById("emotion").value;
 
-    function send() {
-        const input = document.getElementById("input");
-        const msg = input.value;
-        if (!msg) return;
-
-        socket.emit("message", { text: msg });
-        input.value = "";
-    }
-
-    socket.on("message", data => {
-        const div = document.createElement("div");
-        div.textContent = data.pseudo + " : " + data.text;
-        if (data.pseudo === myPseudo) div.classList.add("me");
-        document.getElementById("messages").appendChild(div);
+    socket.emit("join", {
+        sid: socket.id,
+        pseudo: pseudo,
+        emotion: emotion
     });
 
-    socket.on("system", msg => {
-        const div = document.createElement("div");
-        div.textContent = msg;
-        div.classList.add("system");
-        document.getElementById("messages").appendChild(div);
+    document.getElementById("login").style.display = "none";
+    document.getElementById("waiting").style.display = "block";
+}
+
+socket.on("waiting", () => {
+    console.log("En attente...");
+});
+
+socket.on("joined", data => {
+    room = data.room;
+    emotion = data.emotion;
+
+    document.getElementById("waiting").style.display = "none";
+    document.getElementById("chat").style.display = "block";
+    document.getElementById("roomEmotion").innerText = "Salon " + emotion;
+});
+
+function send() {
+    const text = document.getElementById("msg").value;
+    if (!text) return;
+
+    socket.emit("message", {
+        room: room,
+        pseudo: pseudo,
+        text: text,
+        emotion: emotion
     });
+
+    document.getElementById("msg").value = "";
+}
+
+socket.on("message", data => {
+    const div = document.createElement("div");
+    div.innerText = `${data.emotion} ${data.pseudo} : ${data.text}`;
+    document.getElementById("messages").appendChild(div);
+});
 </script>
 
 </body>
