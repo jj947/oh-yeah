@@ -1,18 +1,14 @@
 from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit, join_room, leave_room
-import uuid
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "secret"
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# { emotion: [sid1, sid2, sid3...] }
-waiting = {}
-
-# { sid: room }
-user_room = {}
-
-# { room: [sid1, sid2] }
-rooms = {}
+waiting_users = {}   # emotion -> sid
+pairs = {}           # sid -> sid
+usernames = {}       # sid -> pseudo
+emotions = {}        # sid -> emotion
 
 
 @app.route("/")
@@ -21,90 +17,70 @@ def index():
 
 
 @socketio.on("join")
-def join(data):
-    emotion = data["emotion"]
-    pseudo = data["pseudo"]
+def handle_join(data):
     sid = request.sid
+    username = data["username"]
+    emotion = data["emotion"]
 
-    if emotion not in waiting:
-        waiting[emotion] = []
+    usernames[sid] = username
+    emotions[sid] = emotion
 
-    waiting[emotion].append(sid)
+    # Si quelqu’un attend déjà avec la même émotion
+    if emotion in waiting_users:
+        partner_sid = waiting_users.pop(emotion)
 
-    emit("status", "En attente d’un partenaire...", to=sid)
+        pairs[sid] = partner_sid
+        pairs[partner_sid] = sid
 
-    try_match(emotion)
+        emit("status", "🎉 Partenaire trouvé !", to=sid)
+        emit("status", "🎉 Partenaire trouvé !", to=partner_sid)
 
-
-def try_match(emotion):
-    while len(waiting[emotion]) >= 2:
-        sid1 = waiting[emotion].pop(0)
-        sid2 = waiting[emotion].pop(0)
-
-        room = f"{emotion}_{uuid.uuid4().hex[:6]}"
-        rooms[room] = [sid1, sid2]
-
-        user_room[sid1] = room
-        user_room[sid2] = room
-
-        join_room(room, sid=sid1)
-        join_room(room, sid=sid2)
-
-        emit("connected", to=room)
-        emit("status", "🎉 Partenaire trouvé ! Vous pouvez discuter.", to=room)
+    else:
+        waiting_users[emotion] = sid
+        emit("status", "⏳ En attente d’un partenaire...", to=sid)
 
 
 @socketio.on("message")
-def message(msg):
+def handle_message(data):
     sid = request.sid
-    room = user_room.get(sid)
-    if not room:
-        return
+    msg = data["message"]
 
-    emit("message", {
-        "pseudo": "Partenaire",
-        "message": msg
-    }, to=room, include_self=False)
-
-
-@socketio.on("typing")
-def typing(status):
-    room = user_room.get(request.sid)
-    if room:
-        emit("typing", status, to=room, include_self=False)
+    if sid in pairs:
+        partner_sid = pairs[sid]
+        emit("message", {
+            "from": usernames[sid],
+            "message": msg
+        }, to=partner_sid)
 
 
 @socketio.on("disconnect")
 def handle_disconnect():
-    global waiting_user, pairs
-
     sid = request.sid
 
-    # Si la personne était en attente
-    if waiting_user == sid:
-        waiting_user = None
-        return
+    # S'il attendait
+    for emotion, waiting_sid in list(waiting_users.items()):
+        if waiting_sid == sid:
+            waiting_users.pop(emotion, None)
+            return
 
-    # Si elle était en discussion
+    # S'il était en discussion
     if sid in pairs:
-        partner_sid = pairs[sid]
+        partner_sid = pairs.get(sid)
 
-        # Supprimer la paire des deux côtés
-        del pairs[sid]
-        if partner_sid in pairs:
-            del pairs[partner_sid]
+        pairs.pop(sid, None)
+        if partner_sid:
+            pairs.pop(partner_sid, None)
 
-        # Prévenir le partenaire
-        socketio.emit(
-            "status",
-            "⚠️ Votre partenaire a quitté la discussion. Recherche d’un nouveau partenaire...",
-            room=partner_sid
-        )
-
-        # Remettre le partenaire en attente
-        waiting_user = partner_sid
-
-        del rooms[room]
+        try:
+            emit(
+                "status",
+                "⚠️ Votre partenaire a quitté. En attente d’un nouveau partenaire...",
+                to=partner_sid
+            )
+            waiting_users[emotions[partner_sid]] = partner_sid
+        except:
+            pass
 
 
-
+if __name__ == "__main__":
+    socketio.run(app, host="0.0.0.0", port=5000)
