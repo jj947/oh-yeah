@@ -5,11 +5,18 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret"
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-waiting_users = {}   # emotion -> sid
-pairs = {}           # sid -> sid
-usernames = {}       # sid -> pseudo
-emotions = {}        # sid -> emotion
+waiting_users = {}    # emotion -> [sid, sid]
+pairs = {}            # sid -> sid
+usernames = {}        # sid -> pseudo
+emotions = {}         # sid -> emotion
+
 connected_users = 0
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
 
 @socketio.on("connect")
 def handle_connect():
@@ -17,22 +24,6 @@ def handle_connect():
     connected_users += 1
     emit("counter", connected_users, broadcast=True)
 
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
-def connected_count():
-    return len(usernames)
-
-
-def count_waiting():
-    counts = {}
-    for sid, emotion in emotions.items():
-        counts.setdefault(emotion, 0)
-    for emotion in waiting_users:
-        counts[emotion] += 1
-    return counts
 
 @socketio.on("join")
 def handle_join(data):
@@ -48,7 +39,6 @@ def handle_join(data):
 
     waiting_users[emotion].append(sid)
 
-    # s'il y a au moins 2 personnes, on crée un salon
     if len(waiting_users[emotion]) >= 2:
         sid1 = waiting_users[emotion].pop(0)
         sid2 = waiting_users[emotion].pop(0)
@@ -65,49 +55,46 @@ def handle_join(data):
 @socketio.on("message")
 def handle_message(data):
     sid = request.sid
-    msg = data.get("message")
+    if sid in pairs:
+        partner = pairs[sid]
+        emit("message", {
+            "from": usernames[sid],
+            "message": data["message"]
+        }, to=partner)
 
-    if not msg or sid not in pairs:
-        return
-
-    partner_sid = pairs[sid]
-    emit("message", {
-        "from": usernames[sid],
-        "message": msg
-    }, to=partner_sid)
 
 @socketio.on("disconnect")
 def handle_disconnect():
+    global connected_users
     sid = request.sid
+    connected_users -= 1
+    emit("counter", connected_users, broadcast=True)
 
-    # retirer de l'attente
-    for emotion, waiting_sid in list(waiting_users.items()):
-        if waiting_sid == sid:
-            waiting_users.pop(emotion, None)
+    # Retirer de l'attente
+    for emotion in list(waiting_users):
+        if sid in waiting_users[emotion]:
+            waiting_users[emotion].remove(sid)
 
-    # gérer une discussion en cours
+    # Gérer la déconnexion en discussion
     if sid in pairs:
-        partner_sid = pairs.pop(sid)
-        pairs.pop(partner_sid, None)
+        partner = pairs.pop(sid)
+        pairs.pop(partner, None)
 
         emit(
             "status",
             "⚠️ Votre partenaire a quitté. En attente d’un nouveau partenaire...",
-            to=partner_sid
+            to=partner
         )
 
-        waiting_users[emotions[partner_sid]] = partner_sid
+        emo = emotions.get(partner)
+        if emo:
+            if emo not in waiting_users:
+                waiting_users[emo] = []
+            waiting_users[emo].append(partner)
 
     usernames.pop(sid, None)
     emotions.pop(sid, None)
 
-    emit("waiting_update", count_waiting(), broadcast=True)
-    emit("connected_update", connected_count(), broadcast=True)
-    global connected_users
-    connected_users -= 1
-    emit("counter", connected_users, broadcast=True)
-    ...
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
-
