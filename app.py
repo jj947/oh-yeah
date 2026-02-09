@@ -10,6 +10,13 @@ pairs = {}           # sid -> sid
 usernames = {}       # sid -> pseudo
 emotions = {}        # sid -> emotion
 
+def count_waiting():
+    counts = {}
+    for emotion in emotions.values():
+        counts[emotion] = 0
+    for emotion in waiting_users:
+        counts[emotion] += 1
+    return counts
 
 @app.route("/")
 def index():
@@ -38,7 +45,8 @@ def handle_join(data):
     else:
         waiting_users[emotion] = sid
         emit("status", "⏳ En attente d’un partenaire...", to=sid)
-
+    
+    emit("waiting_update", count_waiting(), broadcast=True)
 
 @socketio.on("message")
 def handle_message(data):
@@ -84,3 +92,4 @@ def handle_disconnect():
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
