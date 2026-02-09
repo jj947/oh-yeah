@@ -10,6 +10,9 @@ pairs = {}           # sid -> sid
 usernames = {}       # sid -> pseudo
 emotions = {}        # sid -> emotion
 
+def connected_count():
+    return len(usernames)
+
 def count_waiting():
     counts = {}
     for emotion in emotions.values():
@@ -47,6 +50,7 @@ def handle_join(data):
         emit("status", "⏳ En attente d’un partenaire...", to=sid)
     
     emit("waiting_update", count_waiting(), broadcast=True)
+    emit("connected_update", connected_count(), broadcast=True)
 
 @socketio.on("message")
 def handle_message(data):
@@ -63,6 +67,8 @@ def handle_message(data):
 
 @socketio.on("disconnect")
 def handle_disconnect():
+    usernames.pop(sid, None)
+    emotions.pop(sid, None)
     sid = request.sid
 
     # S'il attendait
@@ -88,8 +94,10 @@ def handle_disconnect():
             waiting_users[emotions[partner_sid]] = partner_sid
         except:
             pass
+    emit("connected_update", connected_count(), broadcast=True)
 
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
