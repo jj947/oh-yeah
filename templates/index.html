@@ -104,6 +104,8 @@
 <div class="container" id="menu">
     <h1>Oh Yeah</h1>
 
+<div id="connected-count">🟢 0 personnes connectées</div>
+
     <input id="username" placeholder="Ton pseudo">
     
     <select id="emotion">
@@ -218,6 +220,11 @@
     const div = document.getElementById("waiting-info");
     div.innerHTML = "";
 
+    socket.on("connected_update", (count) => {
+    const div = document.getElementById("connected-count");
+    div.textContent = `🟢 ${count} personne${count > 1 ? "s" : ""} connectée${count > 1 ? "s" : ""}`;
+});
+
     for (const emotion in data) {
         div.innerHTML += `<p>${emotion} : ${data[emotion]} personne(s) en attente</p>`;
     }
@@ -240,6 +247,7 @@
 
 </body>
 </html>
+
 
 
 
