@@ -3,104 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <title>Oh Yeah</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         body {
-            font-family: Arial;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            text-align: center;
             margin: 0;
-            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
         }
-        #box {
-            max-width: 400px;
-            margin: 40px auto;
-            background: rgba(0,0,0,0.2);
+
+        .container {
+            background: rgba(0,0,0,0.25);
             padding: 20px;
             border-radius: 15px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
+
+        h1 {
+            margin-top: 0;
+        }
+
         input, select, button {
-            width: 90%;
+            width: 100%;
             padding: 10px;
-            margin: 5px;
-            border-radius: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
             border: none;
+            font-size: 14px;
         }
+
+        button {
+            cursor: pointer;
+            background: #ffffff;
+            color: #333;
+            font-weight: bold;
+        }
+
         #chat {
             display: none;
         }
+
         #messages {
-            height: 200px;
+            height: 220px;
             overflow-y: auto;
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
+            background: rgba(255,255,255,0.1);
             border-radius: 10px;
-            margin-bottom: 10px;
+            padding: 10px;
             text-align: left;
         }
-        .status {
-            color: yellow;
+
+        .msg {
+            margin: 6px 0;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.25);
             font-size: 14px;
-            margin: 5px;
+        }
+
+        .me {
+            background: rgba(0,0,0,0.45);
+            text-align: right;
+        }
+
+        #status {
+            font-size: 13px;
+            margin: 8px 0;
+            color: #ffdddd;
+        }
+
+        #typing {
+            font-size: 12px;
+            color: #ddd;
+        }
+
+        .top-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dark {
+            background: linear-gradient(135deg, #1e1e1e, #2b2b2b);
+        }
+
+        #settings {
+            display: none;
+            margin-top: 10px;
+            font-size: 13px;
+            text-align: left;
         }
     </style>
 </head>
 <body>
 
-<div id="box">
-    <h1>Oh Yeah 😎</h1>
+<div class="container" id="menu">
+    <h1>Oh Yeah</h1>
 
-    <div id="login">
-        <input id="username" placeholder="Ton pseudo">
-        <select id="emotion">
-            <option value="joyeux">😊 Joyeux</option>
-            <option value="triste">😢 Triste</option>
-            <option value="enerve">😡 Énervé</option>
-            <option value="calme">😌 Calme</option>
-        </select>
-        <button onclick="join()">Rejoindre</button>
+    <input id="username" placeholder="Ton pseudo">
+    
+    <select id="emotion">
+        <option value="">Choisis une émotion</option>
+        <option value="😊">😊 Heureux</option>
+        <option value="😢">😢 Triste</option>
+        <option value="😡">😡 En colère</option>
+        <option value="😎">😎 Chill</option>
+        <option value="❤️">❤️ Amour</option>
+    </select>
+
+    <button onclick="join()">Rejoindre</button>
+</div>
+
+<div class="container" id="chat">
+    <div class="top-buttons">
+        <button onclick="goBack()">⬅️ Menu</button>
+        <button onclick="toggleSettings()">⚙️</button>
     </div>
 
-    <div id="chat">
-        <div class="status" id="status"></div>
-        <div id="messages"></div>
-        <input id="msg" placeholder="Message">
-        <button onclick="send()">Envoyer</button>
+    <div id="status">En attente d’un partenaire...</div>
+    <div id="typing"></div>
+
+    <div id="messages"></div>
+
+    <input id="msg" placeholder="Écris un message">
+    <button onclick="sendMessage()">Envoyer</button>
+
+    <div id="settings">
+        <label>
+            <input type="checkbox" id="showEmotion" checked>
+            Afficher l’émotion
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="showStatus" checked>
+            Afficher les notifications
+        </label><br>
+
+        <button onclick="toggleTheme()">🌙 / ☀️ Thème</button>
     </div>
 </div>
 
 <script>
     const socket = io();
-    const statusDiv = document.getElementById("status");
-    const messagesDiv = document.getElementById("messages");
+    let username = "";
+    let emotion = "";
+    let typingTimeout;
 
     function join() {
-        const username = document.getElementById("username").value;
-        const emotion = document.getElementById("emotion").value;
+        username = document.getElementById("username").value.trim();
+        emotion = document.getElementById("emotion").value;
+
+        if (!username || !emotion) return;
+
+        document.getElementById("menu").style.display = "none";
+        document.getElementById("chat").style.display = "block";
 
         socket.emit("join", { username, emotion });
-
-        document.getElementById("login").style.display = "none";
-        document.getElementById("chat").style.display = "block";
     }
 
-    function send() {
-        const msg = document.getElementById("msg").value;
-        if (msg.trim() !== "") {
-            socket.emit("message", { message: msg });
-            messagesDiv.innerHTML += `<div><b>Moi :</b> ${msg}</div>`;
-            document.getElementById("msg").value = "";
+    function sendMessage() {
+        const input = document.getElementById("msg");
+        if (!input.value) return;
+
+        addMessage(`Moi : ${input.value}`, true);
+        socket.emit("message", input.value);
+        input.value = "";
+        socket.emit("stop_typing");
+    }
+
+    function addMessage(text, me=false) {
+        const div = document.createElement("div");
+        div.className = "msg" + (me ? " me" : "");
+        div.innerText = text;
+        document.getElementById("messages").appendChild(div);
+        div.scrollIntoView();
+    }
+
+    socket.on("status", text => {
+        if (document.getElementById("showStatus").checked) {
+            document.getElementById("status").innerText = text;
         }
-    }
+    });
 
     socket.on("message", data => {
-        messagesDiv.innerHTML += `<div><b>${data.from} :</b> ${data.message}</div>`;
+        const emo = document.getElementById("showEmotion").checked ? ` ${data.emotion}` : "";
+        addMessage(`${data.username}${emo} : ${data.msg}`);
     });
 
-    socket.on("status", msg => {
-        statusDiv.innerText = msg;
+    socket.on("typing", user => {
+        document.getElementById("typing").innerText = `${user} écrit...`;
     });
+
+    socket.on("stop_typing", () => {
+        document.getElementById("typing").innerText = "";
+    });
+
+    document.getElementById("msg").addEventListener("input", () => {
+        socket.emit("typing");
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            socket.emit("stop_typing");
+        }, 700);
+    });
+
+    function goBack() {
+        socket.disconnect();
+        location.reload();
+    }
+
+    function toggleSettings() {
+        const s = document.getElementById("settings");
+        s.style.display = s.style.display === "none" ? "block" : "none";
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle("dark");
+    }
 </script>
 
 </body>
