@@ -1,290 +1,238 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Oh Yeah</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Oh Yeah</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #1e1e2f, #2a2a40);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-<style>
+        .app {
+            width: 100%;
+            max-width: 420px;
+            height: 90vh;
+            background: #111;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
 
-.chat-input textarea {
-  flex: 1;
-  resize: none;
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  outline: none;
-  background: rgba(255,255,255,0.08);
-  color: white;
-  font-size: 1em;
-  min-height: 48px;
-  max-height: 140px;
-  overflow-y: auto;
-}
+        header {
+            padding: 16px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            background: #181818;
+            border-bottom: 1px solid #222;
+        }
 
-/* RESET */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: "Segoe UI", system-ui, sans-serif;
-}
+        /* ----------- MENU ----------- */
 
-/* BACKGROUND */
-body {
-  min-height: 100vh;
-  background: radial-gradient(circle at top, #1f2933, #0b0f14);
-  color: #e5e7eb;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+        #menu {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-/* CARD */
-.card {
-  width: 100%;
-  max-width: 420px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 18px;
-  padding: 25px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-  backdrop-filter: blur(10px);
-  animation: fadeIn 0.6s ease;
-}
+        input, select, button {
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 15px;
+        }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+        input, select {
+            background: #1f1f1f;
+            color: white;
+        }
 
-/* TITRE */
-h1 {
-  text-align: center;
-  margin-bottom: 10px;
-  font-size: 2.2em;
-}
+        button {
+            background: #6a5cff;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
 
-.subtitle {
-  text-align: center;
-  font-size: 0.9em;
-  color: #9ca3af;
-  margin-bottom: 20px;
-}
+        button:hover {
+            background: #5848e5;
+        }
 
-/* COUNTER */
-.counter {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 0.95em;
-  color: #a5b4fc;
-}
+        #status {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
 
-/* INPUTS */
-input, select {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  border-radius: 10px;
-  border: none;
-  outline: none;
-  background: rgba(255,255,255,0.08);
-  color: white;
-  font-size: 1em;
-}
+        /* ----------- CHAT ----------- */
 
-input::placeholder {
-  color: #9ca3af;
-}
+        #chat {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
 
-/* BUTTONS */
-button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: white;
-  font-size: 1em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
+        #messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(99,102,241,0.4);
-}
+        .msg {
+            max-width: 80%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
 
-.secondary {
-  margin-top: 10px;
-  background: rgba(255,255,255,0.1);
-}
+        .me {
+            align-self: flex-end;
+            background: #6a5cff;
+        }
 
-/* CHAT */
-#chat {
-  display: none;
-}
+        .other {
+            align-self: flex-start;
+            background: #2a2a2a;
+        }
 
-#status {
-  text-align: center;
-  margin-bottom: 10px;
-  font-size: 0.95em;
-  color: #a5b4fc;
-}
+        .system {
+            align-self: center;
+            font-size: 12px;
+            color: #aaa;
+        }
 
-#messages {
-  height: 260px;
-  overflow-y: auto;
-  background: rgba(0,0,0,0.3);
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 10px;
-}
+        /* ----------- BARRE MESSAGE ----------- */
 
-/* MESSAGES */
-.message {
-  margin-bottom: 8px;
-  font-size: 0.95em;
-}
+        .input-bar {
+            display: flex;
+            padding: 10px;
+            gap: 8px;
+            border-top: 1px solid #222;
+            background: #181818;
+        }
 
-.message.me {
-  text-align: right;
-  color: #c7d2fe;
-}
+        .input-bar textarea {
+            flex: 1;
+            resize: none;
+            height: 42px;              /* 👈 hauteur fixe */
+            max-height: 42px;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            background: #1f1f1f;
+            color: white;
+            overflow-y: auto;          /* 👈 scroll interne */
+        }
 
-.message.other b {
-  color: #a78bfa;
-}
-
-/* INPUT CHAT */
-.chat-input {
-  display: flex;
-  gap: 8px;
-}
-
-.chat-input input {
-  flex: 1;
-  margin-bottom: 0;
-}
-
-/* SCROLLBAR */
-#messages::-webkit-scrollbar {
-  width: 6px;
-}
-#messages::-webkit-scrollbar-thumb {
-  background: #4f46e5;
-  border-radius: 10px;
-}
-</style>
+        .input-bar button {
+            width: 48px;               /* 👈 bouton petit */
+            height: 42px;
+            border-radius: 10px;
+            font-size: 18px;
+            padding: 0;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="card">
+<div class="app">
+    <header>Oh Yeah</header>
 
-  <div id="menu">
-    <h1>Oh Yeah</h1>
-    <p class="subtitle">Parle anonymement avec quelqu’un qui ressent la même chose</p>
-
-    <div class="counter">
-      👥 <span id="counter">0</span> personnes en ligne
+    <!-- MENU -->
+    <div id="menu">
+        <input id="username" placeholder="Ton pseudo">
+        <select id="emotion">
+            <option value="">Choisis une émotion</option>
+            <option value="joie">😊 Joie</option>
+            <option value="triste">😢 Triste</option>
+            <option value="colere">😡 Colère</option>
+            <option value="stress">😰 Stress</option>
+        </select>
+        <button onclick="join()">Rejoindre</button>
+        <div id="status"></div>
     </div>
 
-    <input id="username" placeholder="Ton pseudo">
+    <!-- CHAT -->
+    <div id="chat">
+        <div id="messages"></div>
 
-    <select id="emotion">
-      <option value="heureux">😊 Heureux</option>
-      <option value="triste">😢 Triste</option>
-      <option value="colere">😡 En colère</option>
-      <option value="calme">😌 Calme</option>
-    </select>
-
-    <button onclick="join()">Rejoindre une discussion</button>
-  </div>
-
-  <div id="chat">
-    <p id="status"></p>
-
-    <div id="messages"></div>
-
-    <div class="chat-input">
-      <textarea id="msg" placeholder="Écris ton message…" rows="2"></textarea>
-      <button onclick="send()">➤</button>
+        <div class="input-bar">
+            <textarea id="message" placeholder="Écris ton message..."></textarea>
+            <button onclick="send()">➤</button>
+        </div>
     </div>
-
-
-    <button class="secondary" onclick="location.reload()">Retour au menu</button>
-  </div>
-
 </div>
 
 <script>
-const socket = io();
+    const socket = io();
+    let username = "";
 
-const menu = document.getElementById("menu");
-const chat = document.getElementById("chat");
-const status = document.getElementById("status");
-const messages = document.getElementById("messages");
+    function join() {
+        username = document.getElementById("username").value.trim();
+        const emotion = document.getElementById("emotion").value;
 
-socket.on("counter", n => {
-  document.getElementById("counter").innerText = n;
-});
+        if (!username || !emotion) {
+            alert("Pseudo et émotion obligatoires");
+            return;
+        }
 
-socket.on("status", txt => {
-  status.innerText = txt;
-});
+        socket.emit("join", { username, emotion });
+    }
 
-socket.on("message", data => {
-  messages.innerHTML += `
-    <div class="message other">
-      <b>${data.from}</b> : ${data.message}
-    </div>`;
-  messages.scrollTop = messages.scrollHeight;
-});
+    function send() {
+        const input = document.getElementById("message");
+        const text = input.value.trim();
+        if (!text) return;
 
-function join() {
-  socket.emit("join", {
-    username: document.getElementById("username").value,
-    emotion: document.getElementById("emotion").value
-  });
+        socket.emit("message", { message: text });
+        addMessage(username + " : " + text, "me");
+        input.value = "";
+    }
 
-  menu.style.display = "none";
-  chat.style.display = "block";
-}
+    function addMessage(text, cls) {
+        const div = document.createElement("div");
+        div.className = "msg " + cls;
+        div.textContent = text;
+        document.getElementById("messages").appendChild(div);
+        div.scrollIntoView();
+    }
 
-function send() {
-  const input = document.getElementById("msg");
-  if (!input.value) return;
+    socket.on("status", msg => {
+        document.getElementById("status").textContent = msg;
 
-  socket.emit("message", { message: input.value });
+        if (msg.includes("Partenaire trouvé")) {
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("chat").style.display = "flex";
+            addMessage(msg, "system");
+        } else {
+            addMessage(msg, "system");
+        }
+    });
 
-  messages.innerHTML += `
-    <div class="message me">
-      Moi : ${input.value}
-    </div>`;
-  messages.scrollTop = messages.scrollHeight;
-
-  input.value = "";
-}
-
-const textarea = document.getElementById("msg");
-
-textarea.addEventListener("input", () => {
-  textarea.style.height = "auto";
-  textarea.style.height = textarea.scrollHeight + "px";
-});
-
-textarea.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    send();
-  }
-});
-
+    socket.on("message", data => {
+        addMessage(data.from + " : " + data.message, "other");
+    });
 </script>
 
 </body>
 </html>
-
