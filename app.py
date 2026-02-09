@@ -9,7 +9,13 @@ waiting_users = {}   # emotion -> sid
 pairs = {}           # sid -> sid
 usernames = {}       # sid -> pseudo
 emotions = {}        # sid -> emotion
+connected_users = 0
 
+@socketio.on("connect")
+def handle_connect():
+    global connected_users
+    connected_users += 1
+    emit("counter", connected_users, broadcast=True)
 
 @app.route("/")
 def index():
@@ -28,34 +34,32 @@ def count_waiting():
         counts[emotion] += 1
     return counts
 
-
 @socketio.on("join")
 def handle_join(data):
     sid = request.sid
     username = data["username"]
     emotion = data["emotion"]
 
-    # sécurité : nettoyage avant tout
-    waiting_users.pop(emotion, None)
-    pairs.pop(sid, None)
-
     usernames[sid] = username
     emotions[sid] = emotion
 
-    if emotion in waiting_users:
-        partner_sid = waiting_users.pop(emotion)
+    if emotion not in waiting_users:
+        waiting_users[emotion] = []
 
-        pairs[sid] = partner_sid
-        pairs[partner_sid] = sid
+    waiting_users[emotion].append(sid)
 
-        emit("status", "🎉 Partenaire trouvé !", to=sid)
-        emit("status", "🎉 Partenaire trouvé !", to=partner_sid)
+    # s'il y a au moins 2 personnes, on crée un salon
+    if len(waiting_users[emotion]) >= 2:
+        sid1 = waiting_users[emotion].pop(0)
+        sid2 = waiting_users[emotion].pop(0)
+
+        pairs[sid1] = sid2
+        pairs[sid2] = sid1
+
+        emit("status", "🎉 Partenaire trouvé !", to=sid1)
+        emit("status", "🎉 Partenaire trouvé !", to=sid2)
     else:
-        waiting_users[emotion] = sid
         emit("status", "⏳ En attente d’un partenaire...", to=sid)
-
-    emit("waiting_update", count_waiting(), broadcast=True)
-    emit("connected_update", connected_count(), broadcast=True)
 
 
 @socketio.on("message")
@@ -71,7 +75,6 @@ def handle_message(data):
         "from": usernames[sid],
         "message": msg
     }, to=partner_sid)
-
 
 @socketio.on("disconnect")
 def handle_disconnect():
@@ -100,7 +103,11 @@ def handle_disconnect():
 
     emit("waiting_update", count_waiting(), broadcast=True)
     emit("connected_update", connected_count(), broadcast=True)
-
+    global connected_users
+    connected_users -= 1
+    emit("counter", connected_users, broadcast=True)
+    ...
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
