@@ -118,6 +118,8 @@
     <button onclick="join()">Rejoindre</button>
 </div>
 
+<div id="waiting-info"></div>
+
 <div class="container" id="chat">
     <div class="top-buttons">
         <button onclick="goBack()">⬅️ Menu</button>
@@ -211,6 +213,15 @@
             socket.emit("stop_typing");
         }, 700);
     });
+    
+    socket.on("waiting_update", (data) => {
+    const div = document.getElementById("waiting-info");
+    div.innerHTML = "";
+
+    for (const emotion in data) {
+        div.innerHTML += `<p>${emotion} : ${data[emotion]} personne(s) en attente</p>`;
+    }
+});
 
     function goBack() {
         socket.disconnect();
@@ -229,6 +240,7 @@
 
 </body>
 </html>
+
 
 
 
