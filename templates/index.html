@@ -225,6 +225,10 @@
     div.textContent = `🟢 ${count} personne${count > 1 ? "s" : ""} connectée${count > 1 ? "s" : ""}`;
 });
 
+    socket.on("counter", n => {
+  compteur.innerText = n
+})
+
     for (const emotion in data) {
         div.innerHTML += `<p>${emotion} : ${data[emotion]} personne(s) en attente</p>`;
     }
@@ -247,6 +251,7 @@
 
 </body>
 </html>
+
 
 
 
