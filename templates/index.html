@@ -1,259 +1,98 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Oh Yeah</title>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #6a11cb, #2575fc);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-        }
+<meta charset="UTF-8">
+<title>Oh Yeah</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-        .container {
-            background: rgba(0,0,0,0.25);
-            padding: 20px;
-            border-radius: 15px;
-            width: 350px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: white;
+  text-align: center;
+}
 
-        h1 {
-            margin-top: 0;
-        }
+#chat { display: none; }
 
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 8px;
-            border: none;
-            font-size: 14px;
-        }
+#messages {
+  height: 250px;
+  overflow-y: auto;
+  border: 1px solid #444;
+  padding: 10px;
+  margin-bottom: 10px;
+}
 
-        button {
-            cursor: pointer;
-            background: #ffffff;
-            color: #333;
-            font-weight: bold;
-        }
-
-        #chat {
-            display: none;
-        }
-
-        #messages {
-            height: 220px;
-            overflow-y: auto;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 10px;
-            text-align: left;
-        }
-
-        .msg {
-            margin: 6px 0;
-            padding: 6px 8px;
-            border-radius: 8px;
-            background: rgba(0,0,0,0.25);
-            font-size: 14px;
-        }
-
-        .me {
-            background: rgba(0,0,0,0.45);
-            text-align: right;
-        }
-
-        #status {
-            font-size: 13px;
-            margin: 8px 0;
-            color: #ffdddd;
-        }
-
-        #typing {
-            font-size: 12px;
-            color: #ddd;
-        }
-
-        .top-buttons {
-            display: flex;
-            gap: 6px;
-        }
-
-        .dark {
-            background: linear-gradient(135deg, #1e1e1e, #2b2b2b);
-        }
-
-        #settings {
-            display: none;
-            margin-top: 10px;
-            font-size: 13px;
-            text-align: left;
-        }
-    </style>
+button {
+  padding: 8px 12px;
+  margin: 5px;
+}
+</style>
 </head>
+
 <body>
 
-<div class="container" id="menu">
-    <h1>Oh Yeah</h1>
+<h1>Oh Yeah</h1>
+<p>👥 En ligne : <span id="counter">0</span></p>
 
-<div id="connected-count">🟢 0 personnes connectées</div>
-
-    <input id="username" placeholder="Ton pseudo">
-    
-    <select id="emotion">
-        <option value="">Choisis une émotion</option>
-        <option value="😊">😊 Heureux</option>
-        <option value="😢">😢 Triste</option>
-        <option value="😡">😡 En colère</option>
-        <option value="😎">😎 Chill</option>
-        <option value="❤️">❤️ Amour</option>
-    </select>
-
-    <button onclick="join()">Rejoindre</button>
+<div id="menu">
+  <input id="username" placeholder="Pseudo"><br><br>
+  <select id="emotion">
+    <option value="heureux">😊 Heureux</option>
+    <option value="triste">😢 Triste</option>
+    <option value="colere">😡 Colère</option>
+    <option value="calme">😌 Calme</option>
+  </select><br><br>
+  <button onclick="join()">Rejoindre</button>
 </div>
 
-<div id="waiting-info"></div>
+<div id="chat">
+  <p id="status"></p>
 
-<div class="container" id="chat">
-    <div class="top-buttons">
-        <button onclick="goBack()">⬅️ Menu</button>
-        <button onclick="toggleSettings()">⚙️</button>
-    </div>
+  <div id="messages"></div>
 
-    <div id="status">En attente d’un partenaire...</div>
-    <div id="typing"></div>
-
-    <div id="messages"></div>
-
-    <input id="msg" placeholder="Écris un message">
-    <button onclick="sendMessage()">Envoyer</button>
-
-    <div id="settings">
-        <label>
-            <input type="checkbox" id="showEmotion" checked>
-            Afficher l’émotion
-        </label><br>
-
-        <label>
-            <input type="checkbox" id="showStatus" checked>
-            Afficher les notifications
-        </label><br>
-
-        <button onclick="toggleTheme()">🌙 / ☀️ Thème</button>
-    </div>
+  <input id="msg" placeholder="Message">
+  <button onclick="send()">Envoyer</button><br><br>
+  <button onclick="location.reload()">Retour au menu</button>
 </div>
 
 <script>
-    const socket = io();
-    let username = "";
-    let emotion = "";
-    let typingTimeout;
+const socket = io();
 
-    function join() {
-        username = document.getElementById("username").value.trim();
-        emotion = document.getElementById("emotion").value;
+const menu = document.getElementById("menu");
+const chat = document.getElementById("chat");
+const status = document.getElementById("status");
+const messages = document.getElementById("messages");
 
-        if (!username || !emotion) return;
+socket.on("counter", n => {
+  document.getElementById("counter").innerText = n;
+});
 
-        document.getElementById("menu").style.display = "none";
-        document.getElementById("chat").style.display = "block";
+socket.on("status", txt => {
+  status.innerText = txt;
+});
 
-        socket.emit("join", { username, emotion });
-    }
+socket.on("message", data => {
+  messages.innerHTML += `<p><b>${data.from}</b> : ${data.message}</p>`;
+});
 
- function sendMessage() {
-    const input = document.getElementById("msg");
-    const text = input.value.trim();
-    if (!text) return;
+function join() {
+  socket.emit("join", {
+    username: document.getElementById("username").value,
+    emotion: document.getElementById("emotion").value
+  });
 
-    socket.emit("message", {
-        message: text
-    });
-
-    addMessage(`Moi : ${text}`, true);
-    input.value = "";
+  menu.style.display = "none";
+  chat.style.display = "block";
 }
 
-    function addMessage(text, me=false) {
-        const div = document.createElement("div");
-        div.className = "msg" + (me ? " me" : "");
-        div.innerText = text;
-        document.getElementById("messages").appendChild(div);
-        div.scrollIntoView();
-    }
-
-    socket.on("status", text => {
-        if (document.getElementById("showStatus").checked) {
-            document.getElementById("status").innerText = text;
-        }
-    });
-
-    socket.on("message", (data) => {
-    addMessage(`${data.from} : ${data.message}`);
-});
-
-    socket.on("typing", user => {
-        document.getElementById("typing").innerText = `${user} écrit...`;
-    });
-
-    socket.on("stop_typing", () => {
-        document.getElementById("typing").innerText = "";
-    });
-
-    document.getElementById("msg").addEventListener("input", () => {
-        socket.emit("typing");
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-            socket.emit("stop_typing");
-        }, 700);
-    });
-    
-    socket.on("waiting_update", (data) => {
-    const div = document.getElementById("waiting-info");
-    div.innerHTML = "";
-
-    socket.on("connected_update", (count) => {
-    const div = document.getElementById("connected-count");
-    div.textContent = `🟢 ${count} personne${count > 1 ? "s" : ""} connectée${count > 1 ? "s" : ""}`;
-});
-
-    socket.on("counter", n => {
-  compteur.innerText = n
-})
-
-    for (const emotion in data) {
-        div.innerHTML += `<p>${emotion} : ${data[emotion]} personne(s) en attente</p>`;
-    }
-});
-
-    function goBack() {
-        socket.disconnect();
-        location.reload();
-    }
-
-    function toggleSettings() {
-        const s = document.getElementById("settings");
-        s.style.display = s.style.display === "none" ? "block" : "none";
-    }
-
-    function toggleTheme() {
-        document.body.classList.toggle("dark");
-    }
+function send() {
+  const input = document.getElementById("msg");
+  socket.emit("message", { message: input.value });
+  messages.innerHTML += `<p><i>Moi :</i> ${input.value}</p>`;
+  input.value = "";
+}
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
