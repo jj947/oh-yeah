@@ -192,10 +192,9 @@
         }
     });
 
-    socket.on("message", data => {
-        const emo = document.getElementById("showEmotion").checked ? ` ${data.emotion}` : "";
-        addMessage(`${data.username}${emo} : ${data.msg}`);
-    });
+    socket.on("message", (data) => {
+    addMessage(`${data.from} : ${data.message}`);
+});
 
     socket.on("typing", user => {
         document.getElementById("typing").innerText = `${user} écrit...`;
@@ -230,5 +229,6 @@
 
 </body>
 </html>
+
 
 
