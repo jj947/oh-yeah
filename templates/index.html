@@ -165,18 +165,17 @@
         socket.emit("join", { username, emotion });
     }
 
-   function sendMessage() {
+ function sendMessage() {
     const input = document.getElementById("msg");
     const text = input.value.trim();
     if (!text) return;
 
     socket.emit("message", {
-        msg: text
+        message: text
     });
 
     addMessage(`Moi : ${text}`, true);
     input.value = "";
-    socket.emit("stop_typing");
 }
 
     function addMessage(text, me=false) {
@@ -231,4 +230,5 @@
 
 </body>
 </html>
+
 
