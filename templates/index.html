@@ -131,12 +131,12 @@
     <div id="menu">
         <input id="username" placeholder="Ton pseudo">
         <select id="emotion">
-            <option value="">Choisis une émotion</option>
-            <option value="heureux">😊 Heureux</option>
-            <option value="triste">😢 Triste</option>
-            <option value="enerve">😡 Énervé</option>
-            <option value="calme">😌 Calme</option>
-            <option value="amour">❤️ Amour</option>
+            <option value="heureux" id="count-heureux">😊 Heureux</option>
+            <option value="triste" id="count-triste">😢 Triste</option>
+            <option value="enerve" id="count-enerve">😡 Énervé</option>
+            <option value="calme" id="count-calme">😌 Calme</option>
+            <option value="amour" id="count-amour">❤️ Amour</option>
+
         </select>
         <button onclick="join()">Rejoindre</button>
     </div>
@@ -223,8 +223,24 @@
         document.getElementById("counter").innerText =
             `🌍 Utilisateurs connectés : ${n}`;
     });
+
+    
+socket.on("emotion_counts", counts => {
+    const emotions = ["heureux", "triste", "enerve", "calme", "amour"];
+
+    emotions.forEach(e => {
+        const el = document.getElementById("count-" + e);
+        if (!el) return;
+
+        const n = counts[e] || 0;
+        const label = el.textContent.split("(")[0].trim();
+        el.textContent = `${label} (${n})`;
+    });
+});
+
 </script>
 
 </body>
 </html>
+
 
