@@ -9,19 +9,20 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #1f1c2c, #928dab);
+    background: linear-gradient(135deg, #141E30, #243B55);
     color: white;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
 }
 
 #app {
-    width: 360px;
+    width: 380px;
     background: rgba(0,0,0,0.35);
-    border-radius: 15px;
+    border-radius: 18px;
     padding: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
 h1 {
@@ -32,52 +33,51 @@ h1 {
 #global {
     text-align: center;
     font-size: 14px;
-    opacity: 0.8;
+    opacity: 0.85;
     margin-bottom: 15px;
 }
 
-select, input, button {
+input, select, button {
     width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
+    padding: 11px;
     margin-top: 10px;
+    border-radius: 10px;
+    border: none;
     font-size: 16px;
 }
 
 button {
-    background: #ff5f6d;
+    background: linear-gradient(135deg, #ff512f, #dd2476);
     color: white;
     cursor: pointer;
 }
 
 #chat {
     display: none;
-    margin-top: 15px;
+}
+
+#status {
+    text-align: center;
+    font-size: 14px;
+    margin: 10px 0;
+    opacity: 0.9;
 }
 
 #messages {
-    height: 200px;
+    height: 220px;
     overflow-y: auto;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.08);
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 10px;
 }
 
 .msg {
     margin-bottom: 6px;
 }
 
-.status {
-    text-align: center;
-    font-size: 14px;
-    opacity: 0.9;
-    margin: 8px 0;
-}
-
 #sendBox {
     display: flex;
-    gap: 5px;
+    gap: 6px;
     margin-top: 10px;
 }
 
@@ -86,7 +86,12 @@ button {
 }
 
 #sendBox button {
-    width: 80px;
+    width: 90px;
+}
+
+.return {
+    margin-top: 12px;
+    background: rgba(255,255,255,0.15);
 }
 </style>
 </head>
@@ -111,7 +116,7 @@ button {
 </div>
 
 <div id="chat">
-    <div class="status" id="status"></div>
+    <div id="status"></div>
     <div id="messages"></div>
 
     <div id="sendBox">
@@ -119,7 +124,7 @@ button {
         <button onclick="send()">Envoyer</button>
     </div>
 
-    <button onclick="leave()">Retour au salon</button>
+    <button class="return" onclick="leave()">⬅ Retour au salon</button>
 </div>
 
 </div>
@@ -128,19 +133,18 @@ button {
 const socket = io();
 
 function join() {
-    const u = username.value.trim();
-    const e = emotion.value;
-    if (!u || !e) return;
-
-    socket.emit("join", {username: u, emotion: e});
+    if (!username.value || !emotion.value) return;
+    socket.emit("join", {
+        username: username.value,
+        emotion: emotion.value
+    });
     menu.style.display = "none";
     chat.style.display = "block";
 }
 
 function send() {
-    const text = msg.value.trim();
-    if (!text) return;
-    socket.emit("send_message", {message: text});
+    if (!msg.value.trim()) return;
+    socket.emit("send_message", { message: msg.value });
     msg.value = "";
 }
 
@@ -156,23 +160,22 @@ socket.on("status", s => {
 });
 
 socket.on("message", data => {
-    const div = document.createElement("div");
-    div.className = "msg";
-    div.innerHTML = `<b>${data.from}</b> : ${data.message}`;
-    messages.appendChild(div);
+    const d = document.createElement("div");
+    d.className = "msg";
+    d.innerHTML = `<b>${data.from}</b> : ${data.message}`;
+    messages.appendChild(d);
     messages.scrollTop = messages.scrollHeight;
 });
 
 socket.on("emotion_counts", counts => {
     for (const emo in counts) {
         const el = document.getElementById("count-" + emo);
-        if (!el) continue;
-        el.textContent = `${el.dataset.base} (${counts[emo]})`;
+        if (el) el.textContent = `${el.dataset.base} (${counts[emo]})`;
     }
 });
 
 socket.on("global_count", n => {
-    document.getElementById("global").textContent = `👥 En attente : ${n}`;
+    global.textContent = `👥 En attente : ${n}`;
 });
 </script>
 
