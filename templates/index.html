@@ -1,247 +1,180 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Oh Yeah</title>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<meta charset="UTF-8">
+<title>Oh Yeah</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1f1c2c, #928dab);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
 
-        body {
-            margin: 0;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+#app {
+    width: 360px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 15px;
+    padding: 20px;
+}
 
-        .card {
-            background: rgba(0,0,0,0.35);
-            padding: 25px;
-            border-radius: 16px;
-            width: 360px;
-            max-width: 95%;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-        }
+h1 {
+    text-align: center;
+    margin-bottom: 5px;
+}
 
-        h1 {
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
+#global {
+    text-align: center;
+    font-size: 14px;
+    opacity: 0.8;
+    margin-bottom: 15px;
+}
 
-        .counter {
-            text-align: center;
-            font-size: 14px;
-            opacity: 0.85;
-            margin-bottom: 15px;
-        }
+select, input, button {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    margin-top: 10px;
+    font-size: 16px;
+}
 
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            border: none;
-            font-size: 15px;
-        }
+button {
+    background: #ff5f6d;
+    color: white;
+    cursor: pointer;
+}
 
-        button {
-            background: #00e6a8;
-            font-weight: bold;
-            cursor: pointer;
-        }
+#chat {
+    display: none;
+    margin-top: 15px;
+}
 
-        button:hover {
-            background: #00c994;
-        }
+#messages {
+    height: 200px;
+    overflow-y: auto;
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 8px;
+}
 
-        #chat {
-            display: none;
-        }
+.msg {
+    margin-bottom: 6px;
+}
 
-        #messages {
-            background: rgba(0,0,0,0.4);
-            height: 260px;
-            border-radius: 10px;
-            padding: 10px;
-            overflow-y: auto;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
+.status {
+    text-align: center;
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 8px 0;
+}
 
-        .msg {
-            margin-bottom: 8px;
-        }
+#sendBox {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
 
-        .me {
-            color: #00e6a8;
-        }
+#sendBox input {
+    flex: 1;
+}
 
-        .status {
-            text-align: center;
-            font-style: italic;
-            opacity: 0.8;
-            margin: 6px 0;
-        }
-
-        .chat-input {
-            display: flex;
-            gap: 8px;
-        }
-
-        .chat-input input {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        .chat-input button {
-            width: 80px;
-            margin-bottom: 0;
-        }
-
-        .back {
-            margin-top: 10px;
-            background: #ff6b6b;
-        }
-
-        .back:hover {
-            background: #e05555;
-        }
-    </style>
+#sendBox button {
+    width: 80px;
+}
+</style>
 </head>
 
 <body>
+<div id="app">
 
-<div class="card">
+<h1>Oh Yeah</h1>
+<div id="global">👥 En attente : 0</div>
 
-    <h1>Oh Yeah 💬</h1>
+<div id="menu">
+    <input id="username" placeholder="Ton pseudo">
+    <select id="emotion">
+        <option value="">Choisis une émotion</option>
+        <option value="heureux" id="count-heureux" data-base="😊 Heureux">😊 Heureux</option>
+        <option value="triste" id="count-triste" data-base="😢 Triste">😢 Triste</option>
+        <option value="enerve" id="count-enerve" data-base="😡 Énervé">😡 Énervé</option>
+        <option value="calme" id="count-calme" data-base="😌 Calme">😌 Calme</option>
+        <option value="amour" id="count-amour" data-base="❤️ Amour">❤️ Amour</option>
+    </select>
+    <button onclick="join()">Rejoindre</button>
+</div>
 
-    <div class="counter" id="counter">
-        🌍 Utilisateurs connectés : 0
+<div id="chat">
+    <div class="status" id="status"></div>
+    <div id="messages"></div>
+
+    <div id="sendBox">
+        <input id="msg" placeholder="Écris ton message">
+        <button onclick="send()">Envoyer</button>
     </div>
 
-    <!-- MENU -->
-    <div id="menu">
-        <input id="username" placeholder="Ton pseudo">
-        <select id="emotion">
-            <option value="heureux" id="count-heureux" data-base="😊 Heureux">😊 Heureux</option>
-            <option value="triste" id="count-triste" data-base="😢 Triste">😢 Triste</option>
-            <option value="enerve" id="count-enerve" data-base="😡 Énervé">😡 Énervé</option>
-            <option value="calme" id="count-calme" data-base="😌 Calme">😌 Calme</option>
-            <option value="amour" id="count-amour" data-base="❤️ Amour">❤️ Amour</option>
-
-        </select>
-        <button onclick="join()">Rejoindre</button>
-    </div>
-
-    <!-- CHAT -->
-    <div id="chat">
-        <div id="messages"></div>
-
-        <div class="chat-input">
-            <input id="messageInput" placeholder="Écris ton message…">
-            <button onclick="sendMessage()">Envoyer</button>
-        </div>
-
-        <button class="back" onclick="goBack()">⬅ Retour au menu</button>
-    </div>
+    <button onclick="leave()">Retour au salon</button>
+</div>
 
 </div>
 
 <script>
-    const socket = io();
-    
-socket.on("emotion_counts", counts => {
-    const emotions = ["heureux", "triste", "enerve", "calme", "amour"];
+const socket = io();
 
-    emotions.forEach(e => {
-        const el = document.getElementById("count-" + e);
-        if (!el) return;
+function join() {
+    const u = username.value.trim();
+    const e = emotion.value;
+    if (!u || !e) return;
 
-        const n = counts[e] || 0;
-        const label = el.textContent.split("(")[0].trim();
-        el.textContent = `${label} (${n})`;
-    });
+    socket.emit("join", {username: u, emotion: e});
+    menu.style.display = "none";
+    chat.style.display = "block";
+}
+
+function send() {
+    const text = msg.value.trim();
+    if (!text) return;
+    socket.emit("send_message", {message: text});
+    msg.value = "";
+}
+
+function leave() {
+    socket.emit("leave");
+    chat.style.display = "none";
+    menu.style.display = "block";
+    messages.innerHTML = "";
+}
+
+socket.on("status", s => {
+    status.textContent = s;
 });
 
-    let myUsername = "";
+socket.on("message", data => {
+    const div = document.createElement("div");
+    div.className = "msg";
+    div.innerHTML = `<b>${data.from}</b> : ${data.message}`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+});
 
-    function join() {
-        const username = document.getElementById("username").value.trim();
-        const emotion = document.getElementById("emotion").value;
-
-        if (!username || !emotion) {
-            alert("Pseudo et émotion obligatoires");
-            return;
-        }
-
-        myUsername = username;
-
-        socket.emit("join", {
-            username: username,
-            emotion: emotion
-        });
-
-        document.getElementById("menu").style.display = "none";
-        document.getElementById("chat").style.display = "block";
-        document.getElementById("messages").innerHTML = "";
+socket.on("emotion_counts", counts => {
+    for (const emo in counts) {
+        const el = document.getElementById("count-" + emo);
+        if (!el) continue;
+        el.textContent = `${el.dataset.base} (${counts[emo]})`;
     }
+});
 
-    function sendMessage() {
-        const input = document.getElementById("messageInput");
-        const msg = input.value.trim();
-        if (!msg) return;
-
-        socket.emit("message", { message: msg });
-
-        addMessage(myUsername, msg, true);
-        input.value = "";
-    }
-
-    function addMessage(user, msg, me = false) {
-        const div = document.createElement("div");
-        div.className = "msg";
-        div.innerHTML = `<strong class="${me ? 'me' : ''}">${user}</strong> : ${msg}`;
-        document.getElementById("messages").appendChild(div);
-        document.getElementById("messages").scrollTop = 999999;
-    }
-
-    function addStatus(text) {
-        const div = document.createElement("div");
-        div.className = "status";
-        div.innerText = text;
-        document.getElementById("messages").appendChild(div);
-    }
-
-    function goBack() {
-        location.reload();
-    }
-
-    socket.on("message", data => {
-        addMessage(data.from, data.message);
-    });
-
-    socket.on("status", text => {
-        addStatus(text);
-    });
-
-    socket.on("count", n => {
-        document.getElementById("counter").innerText =
-            `🌍 Utilisateurs connectés : ${n}`;
-    });
-
-
+socket.on("global_count", n => {
+    document.getElementById("global").textContent = `👥 En attente : ${n}`;
+});
 </script>
 
 </body>
 </html>
-
-
-
