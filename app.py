@@ -26,6 +26,9 @@ def handle_connect():
     connected_users.add(request.sid)
     emit("count", len(connected_users), broadcast=True)
 
+@socketio.on("connect")
+def handle_connect():
+    send_emotion_counts()
 
 @socketio.on("join")
 def handle_join(data):
@@ -124,4 +127,5 @@ def send_emotion_counts():
 # ===== LANCEMENT =====
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
