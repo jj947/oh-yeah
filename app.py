@@ -52,7 +52,7 @@ def handle_join(data):
     else:
         waiting[emotion].append(sid)
         emit("status", "⏳ En attente d’un partenaire...", to=sid)
-
+    send_emotion_counts()
 
 @socketio.on("message")
 def handle_message(data):
@@ -105,8 +105,23 @@ def handle_disconnect():
 
     usernames.pop(sid, None)
     emotions.pop(sid, None)
+    send_emotion_counts()
 
+def send_emotion_counts():
+    counts = {}
+
+    # utilisateurs en attente
+    for emotion in waiting_users:
+        counts[emotion] = counts.get(emotion, 0) + 1
+
+    # utilisateurs en discussion
+    for sid, emotion in emotions.items():
+        if sid in pairs:
+            counts[emotion] = counts.get(emotion, 0) + 1
+
+    socketio.emit("emotion_counts", counts)
 
 # ===== LANCEMENT =====
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
