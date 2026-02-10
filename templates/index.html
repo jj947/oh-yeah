@@ -2,49 +2,61 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Chat par émotion</title>
+<title>Chat Émotion</title>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
 <style>
+:root {
+    --main: #6c5ce7;
+    --accent: #a29bfe;
+    --bg: #f5f6fa;
+    --me: #6c5ce7;
+    --other: #dfe6e9;
+}
+
 * {
     box-sizing: border-box;
-    font-family: Arial, sans-serif;
+    font-family: "Segoe UI", system-ui, sans-serif;
 }
 
 body {
-    background: linear-gradient(135deg, #667eea, #764ba2);
     margin: 0;
     height: 100vh;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 }
 
 #app {
-    background: white;
     width: 420px;
-    height: 620px;
-    border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    height: 640px;
+    background: white;
+    border-radius: 22px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
-/* ---------- HEADER ---------- */
+/* HEADER */
 header {
-    padding: 15px;
-    background: #6c5ce7;
+    background: var(--main);
     color: white;
+    padding: 14px;
     text-align: center;
 }
 
-#globalCounter {
-    font-size: 14px;
-    opacity: 0.9;
+header h2 {
+    margin: 0;
 }
 
-/* ---------- MENU ---------- */
+#globalCounter {
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+/* MENU */
 #menu {
     padding: 20px;
     flex: 1;
@@ -53,24 +65,24 @@ header {
 input, select, button {
     width: 100%;
     padding: 12px;
-    margin-top: 10px;
-    border-radius: 10px;
+    border-radius: 14px;
     border: 1px solid #ccc;
+    margin-top: 12px;
     font-size: 15px;
 }
 
 button {
-    background: #6c5ce7;
+    background: var(--main);
     color: white;
-    cursor: pointer;
     border: none;
+    cursor: pointer;
 }
 
 button:hover {
     background: #5a4bdc;
 }
 
-/* ---------- CHAT ---------- */
+/* CHAT */
 #chat {
     display: none;
     flex-direction: column;
@@ -79,27 +91,43 @@ button:hover {
 
 #status {
     text-align: center;
+    font-size: 13px;
     padding: 8px;
-    font-size: 14px;
-    background: #f1f1f1;
+    background: #f1f2f6;
 }
 
+/* MESSAGES */
 #messages {
     flex: 1;
-    padding: 10px;
+    padding: 12px;
     overflow-y: auto;
-    background: #fafafa;
+    background: var(--bg);
 }
 
-.message {
+.msg {
+    max-width: 75%;
+    padding: 10px 14px;
     margin-bottom: 10px;
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: #e0e0ff;
+    border-radius: 16px;
     font-size: 14px;
+    word-wrap: break-word;
 }
 
-/* ---------- INPUT BAR ---------- */
+.me {
+    background: var(--me);
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+}
+
+.other {
+    background: var(--other);
+    color: #2d3436;
+    margin-right: auto;
+    border-bottom-left-radius: 4px;
+}
+
+/* INPUT BAR */
 #inputBar {
     display: flex;
     padding: 10px;
@@ -109,9 +137,7 @@ button:hover {
 
 #msgInput {
     flex: 1;
-    padding: 10px;
     border-radius: 20px;
-    border: 1px solid #ccc;
 }
 
 #sendBtn {
@@ -120,104 +146,90 @@ button:hover {
     border-radius: 20px;
 }
 
-/* ---------- FOOTER ---------- */
+/* BACK */
 #backBtn {
-    background: #ff7675;
     margin: 10px;
+    background: #ff7675;
 }
 </style>
 </head>
 
 <body>
 <div id="app">
-    <header>
-        <h2>Chat par émotion</h2>
-        <div id="globalCounter">0 utilisateurs en ligne</div>
-    </header>
+<header>
+    <h2>Chat par émotion</h2>
+    <div id="globalCounter">0 utilisateurs en ligne</div>
+</header>
 
-    <!-- MENU -->
-    <div id="menu">
-        <input id="username" placeholder="Ton pseudo">
+<div id="menu">
+    <input id="username" placeholder="Ton pseudo">
+    <select id="emotion">
+        <option value="">Choisis une émotion</option>
+        <option value="heureux">😊 Heureux (0)</option>
+        <option value="triste">😢 Triste (0)</option>
+        <option value="enerve">😡 Énervé (0)</option>
+        <option value="calme">😌 Calme (0)</option>
+        <option value="amour">❤️ Amour (0)</option>
+    </select>
+    <button onclick="join()">Entrer</button>
+</div>
 
-        <select id="emotion">
-            <option value="">Choisis une émotion</option>
-            <option value="heureux">😊 Heureux (0)</option>
-            <option value="triste">😢 Triste (0)</option>
-            <option value="enerve">😡 Énervé (0)</option>
-            <option value="calme">😌 Calme (0)</option>
-            <option value="amour">❤️ Amour (0)</option>
-        </select>
+<div id="chat">
+    <div id="status"></div>
+    <div id="messages"></div>
 
-        <button onclick="join()">Entrer dans le chat</button>
+    <div id="inputBar">
+        <input id="msgInput" placeholder="Écris ton message...">
+        <button id="sendBtn" onclick="send()">Envoyer</button>
     </div>
 
-    <!-- CHAT -->
-    <div id="chat">
-        <div id="status"></div>
-        <div id="messages"></div>
-
-        <div id="inputBar">
-            <input id="msgInput" placeholder="Écris ton message...">
-            <button id="sendBtn" onclick="sendMessage()">Envoyer</button>
-        </div>
-
-        <button id="backBtn" onclick="leaveChat()">Retour au menu</button>
-    </div>
+    <button id="backBtn" onclick="leave()">Retour au menu</button>
+</div>
 </div>
 
 <script>
 const socket = io();
 
 function join() {
-    const username = document.getElementById("username").value;
-    const emotion = document.getElementById("emotion").value;
-
-    if (!username || !emotion) return alert("Pseudo et émotion requis");
+    const username = usernameInput.value;
+    const emotion = emotionSelect.value;
+    if (!username || !emotion) return alert("Tout est requis");
 
     socket.emit("join", { username, emotion });
-
-    document.getElementById("menu").style.display = "none";
-    document.getElementById("chat").style.display = "flex";
+    menu.style.display = "none";
+    chat.style.display = "flex";
 }
 
-function sendMessage() {
-    const input = document.getElementById("msgInput");
-    if (input.value.trim() !== "") {
-        socket.emit("message", { message: input.value });
-        input.value = "";
+function send() {
+    if (msgInput.value.trim()) {
+        socket.emit("message", { message: msgInput.value });
+        msgInput.value = "";
     }
 }
 
-function leaveChat() {
+function leave() {
     socket.emit("leave_chat");
-    document.getElementById("chat").style.display = "none";
-    document.getElementById("menu").style.display = "block";
-    document.getElementById("messages").innerHTML = "";
+    chat.style.display = "none";
+    menu.style.display = "block";
+    messages.innerHTML = "";
 }
 
 socket.on("message", data => {
     const div = document.createElement("div");
-    div.className = "message";
-    div.innerText = `${data.from} : ${data.message}`;
-    document.getElementById("messages").appendChild(div);
-    document.getElementById("messages").scrollTop =
-        document.getElementById("messages").scrollHeight;
+    div.className = "msg " + (data.self ? "me" : "other");
+    div.textContent = data.message;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
 });
 
-socket.on("status", msg => {
-    document.getElementById("status").innerText = msg;
-});
+socket.on("status", msg => status.innerText = msg);
 
 socket.on("update_counters", data => {
-    document.getElementById("globalCounter").innerText =
-        data.global + " utilisateurs en ligne";
-
-    const select = document.getElementById("emotion");
-    [...select.options].forEach(opt => {
-        if (opt.value && data.emotions[opt.value] !== undefined) {
-            opt.textContent =
-                opt.textContent.split("(")[0].trim() +
-                " (" + data.emotions[opt.value] + ")";
+    globalCounter.innerText = data.global + " utilisateurs en ligne";
+    [...emotionSelect.options].forEach(o => {
+        if (o.value && data.emotions[o.value] !== undefined) {
+            o.textContent = o.textContent.split("(")[0].trim()
+                + " (" + data.emotions[o.value] + ")";
         }
     });
 });
