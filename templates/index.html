@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Oh Yeah</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -12,7 +13,7 @@
 
         body {
             margin: 0;
-            background: linear-gradient(135deg, #1e1e2f, #2a2a40);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             display: flex;
             justify-content: center;
@@ -20,175 +21,146 @@
             height: 100vh;
         }
 
-        .app {
-            width: 100%;
-            max-width: 420px;
-            height: 90vh;
-            background: #111;
+        .card {
+            background: rgba(0,0,0,0.35);
+            padding: 25px;
             border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            width: 360px;
+            max-width: 95%;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
         }
 
-        header {
-            padding: 16px;
+        h1 {
             text-align: center;
-            font-size: 26px;
-            font-weight: bold;
-            background: #181818;
-            border-bottom: 1px solid #222;
+            margin-top: 0;
+            margin-bottom: 10px;
         }
 
-        /* ----------- MENU ----------- */
-
-        #menu {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .counter {
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.85;
+            margin-bottom: 15px;
         }
 
         input, select, button {
-            padding: 12px;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
             border-radius: 8px;
             border: none;
             font-size: 15px;
         }
 
-        input, select {
-            background: #1f1f1f;
-            color: white;
-        }
-
         button {
-            background: #6a5cff;
-            color: white;
-            cursor: pointer;
+            background: #00e6a8;
             font-weight: bold;
+            cursor: pointer;
         }
 
         button:hover {
-            background: #5848e5;
+            background: #00c994;
         }
-
-        #status {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        /* ----------- CHAT ----------- */
 
         #chat {
             display: none;
-            flex-direction: column;
-            height: 100%;
         }
 
         #messages {
-            flex: 1;
-            padding: 15px;
+            background: rgba(0,0,0,0.4);
+            height: 260px;
+            border-radius: 10px;
+            padding: 10px;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
         }
 
         .msg {
-            max-width: 80%;
-            padding: 10px 12px;
-            border-radius: 12px;
-            word-wrap: break-word;
-            font-size: 14px;
+            margin-bottom: 8px;
         }
 
         .me {
-            align-self: flex-end;
-            background: #6a5cff;
+            color: #00e6a8;
         }
 
-        .other {
-            align-self: flex-start;
-            background: #2a2a2a;
+        .status {
+            text-align: center;
+            font-style: italic;
+            opacity: 0.8;
+            margin: 6px 0;
         }
 
-        .system {
-            align-self: center;
-            font-size: 12px;
-            color: #aaa;
-        }
-
-        /* ----------- BARRE MESSAGE ----------- */
-
-        .input-bar {
+        .chat-input {
             display: flex;
-            padding: 10px;
             gap: 8px;
-            border-top: 1px solid #222;
-            background: #181818;
         }
 
-        .input-bar textarea {
+        .chat-input input {
             flex: 1;
-            resize: none;
-            height: 42px;              /* 👈 hauteur fixe */
-            max-height: 42px;
-            padding: 10px;
-            border-radius: 10px;
-            border: none;
-            font-size: 14px;
-            background: #1f1f1f;
-            color: white;
-            overflow-y: auto;          /* 👈 scroll interne */
+            margin-bottom: 0;
         }
 
-        .input-bar button {
-            width: 48px;               /* 👈 bouton petit */
-            height: 42px;
-            border-radius: 10px;
-            font-size: 18px;
-            padding: 0;
+        .chat-input button {
+            width: 80px;
+            margin-bottom: 0;
+        }
+
+        .back {
+            margin-top: 10px;
+            background: #ff6b6b;
+        }
+
+        .back:hover {
+            background: #e05555;
         }
     </style>
 </head>
+
 <body>
 
-<div class="app">
-    <header>Oh Yeah</header>
+<div class="card">
+
+    <h1>Oh Yeah 💬</h1>
+
+    <div class="counter" id="counter">
+        🌍 Utilisateurs connectés : 0
+    </div>
 
     <!-- MENU -->
     <div id="menu">
         <input id="username" placeholder="Ton pseudo">
         <select id="emotion">
             <option value="">Choisis une émotion</option>
-            <option value="joie">😊 Joie</option>
+            <option value="heureux">😊 Heureux</option>
             <option value="triste">😢 Triste</option>
-            <option value="colere">😡 Colère</option>
-            <option value="stress">😰 Stress</option>
+            <option value="enerve">😡 Énervé</option>
+            <option value="calme">😌 Calme</option>
         </select>
         <button onclick="join()">Rejoindre</button>
-        <div id="status"></div>
     </div>
 
     <!-- CHAT -->
     <div id="chat">
         <div id="messages"></div>
 
-        <div class="input-bar">
-            <textarea id="message" placeholder="Écris ton message..."></textarea>
-            <button onclick="send()">➤</button>
+        <div class="chat-input">
+            <input id="messageInput" placeholder="Écris ton message…">
+            <button onclick="sendMessage()">Envoyer</button>
         </div>
+
+        <button class="back" onclick="goBack()">⬅ Retour au menu</button>
     </div>
+
 </div>
 
 <script>
     const socket = io();
-    let username = "";
+
+    let myUsername = "";
 
     function join() {
-        username = document.getElementById("username").value.trim();
+        const username = document.getElementById("username").value.trim();
         const emotion = document.getElementById("emotion").value;
 
         if (!username || !emotion) {
@@ -196,41 +168,59 @@
             return;
         }
 
-        socket.emit("join", { username, emotion });
+        myUsername = username;
+
+        socket.emit("join", {
+            username: username,
+            emotion: emotion
+        });
+
+        document.getElementById("menu").style.display = "none";
+        document.getElementById("chat").style.display = "block";
+        document.getElementById("messages").innerHTML = "";
     }
 
-    function send() {
-        const input = document.getElementById("message");
-        const text = input.value.trim();
-        if (!text) return;
+    function sendMessage() {
+        const input = document.getElementById("messageInput");
+        const msg = input.value.trim();
+        if (!msg) return;
 
-        socket.emit("message", { message: text });
-        addMessage(username + " : " + text, "me");
+        socket.emit("message", { message: msg });
+
+        addMessage(myUsername, msg, true);
         input.value = "";
     }
 
-    function addMessage(text, cls) {
+    function addMessage(user, msg, me = false) {
         const div = document.createElement("div");
-        div.className = "msg " + cls;
-        div.textContent = text;
+        div.className = "msg";
+        div.innerHTML = `<strong class="${me ? 'me' : ''}">${user}</strong> : ${msg}`;
         document.getElementById("messages").appendChild(div);
-        div.scrollIntoView();
+        document.getElementById("messages").scrollTop = 999999;
     }
 
-    socket.on("status", msg => {
-        document.getElementById("status").textContent = msg;
+    function addStatus(text) {
+        const div = document.createElement("div");
+        div.className = "status";
+        div.innerText = text;
+        document.getElementById("messages").appendChild(div);
+    }
 
-        if (msg.includes("Partenaire trouvé")) {
-            document.getElementById("menu").style.display = "none";
-            document.getElementById("chat").style.display = "flex";
-            addMessage(msg, "system");
-        } else {
-            addMessage(msg, "system");
-        }
-    });
+    function goBack() {
+        location.reload();
+    }
 
     socket.on("message", data => {
-        addMessage(data.from + " : " + data.message, "other");
+        addMessage(data.from, data.message);
+    });
+
+    socket.on("status", text => {
+        addStatus(text);
+    });
+
+    socket.on("count", n => {
+        document.getElementById("counter").innerText =
+            `🌍 Utilisateurs connectés : ${n}`;
     });
 </script>
 
