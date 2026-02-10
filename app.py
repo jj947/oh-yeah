@@ -2,99 +2,111 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "secret"
+app.config["SECRET_KEY"] = "secret-key"
+
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-waiting_users = {}    # emotion -> [sid, sid]
-pairs = {}            # sid -> sid
+# ===== DONNÉES =====
+waiting = {}          # emotion -> [sid, sid, ...]
+pairs = {}            # sid -> partner_sid
 usernames = {}        # sid -> pseudo
 emotions = {}         # sid -> emotion
+connected_users = set()
 
-connected_users = 0
 
-
+# ===== ROUTE WEB =====
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
+# ===== SOCKET EVENTS =====
 @socketio.on("connect")
 def handle_connect():
-    global connected_users
-    connected_users += 1
-    emit("counter", connected_users, broadcast=True)
+    connected_users.add(request.sid)
+    emit("count", len(connected_users), broadcast=True)
 
 
 @socketio.on("join")
 def handle_join(data):
     sid = request.sid
-    username = data["username"]
-    emotion = data["emotion"]
+    username = data.get("username")
+    emotion = data.get("emotion")
 
     usernames[sid] = username
     emotions[sid] = emotion
 
-    if emotion not in waiting_users:
-        waiting_users[emotion] = []
+    # créer la file d’attente si absente
+    if emotion not in waiting:
+        waiting[emotion] = []
 
-    waiting_users[emotion].append(sid)
+    # s'il y a déjà quelqu’un qui attend
+    if len(waiting[emotion]) > 0:
+        partner_sid = waiting[emotion].pop(0)
 
-    if len(waiting_users[emotion]) >= 2:
-        sid1 = waiting_users[emotion].pop(0)
-        sid2 = waiting_users[emotion].pop(0)
+        pairs[sid] = partner_sid
+        pairs[partner_sid] = sid
 
-        pairs[sid1] = sid2
-        pairs[sid2] = sid1
-
-        emit("status", "🎉 Partenaire trouvé !", to=sid1)
-        emit("status", "🎉 Partenaire trouvé !", to=sid2)
+        emit("status", "🎉 Partenaire trouvé !", to=sid)
+        emit("status", "🎉 Partenaire trouvé !", to=partner_sid)
     else:
+        waiting[emotion].append(sid)
         emit("status", "⏳ En attente d’un partenaire...", to=sid)
 
 
 @socketio.on("message")
 def handle_message(data):
     sid = request.sid
+    msg = data.get("message")
+
     if sid in pairs:
-        partner = pairs[sid]
-        emit("message", {
-            "from": usernames[sid],
-            "message": data["message"]
-        }, to=partner)
+        partner_sid = pairs[sid]
+        emit(
+            "message",
+            {
+                "from": usernames.get(sid, "Anonyme"),
+                "message": msg
+            },
+            to=partner_sid
+        )
 
 
 @socketio.on("disconnect")
 def handle_disconnect():
-    global connected_users
     sid = request.sid
-    connected_users -= 1
-    emit("counter", connected_users, broadcast=True)
 
-    # Retirer de l'attente
-    for emotion in list(waiting_users):
-        if sid in waiting_users[emotion]:
-            waiting_users[emotion].remove(sid)
+    connected_users.discard(sid)
+    emit("count", len(connected_users), broadcast=True)
 
-    # Gérer la déconnexion en discussion
+    # enlever des listes d’attente
+    for emotion in waiting:
+        if sid in waiting[emotion]:
+            waiting[emotion].remove(sid)
+
+    # gérer la déconnexion en discussion
     if sid in pairs:
-        partner = pairs.pop(sid)
-        pairs.pop(partner, None)
+        partner_sid = pairs.pop(sid)
 
-        emit(
-            "status",
-            "⚠️ Votre partenaire a quitté. En attente d’un nouveau partenaire...",
-            to=partner
-        )
+        if partner_sid in pairs:
+            pairs.pop(partner_sid)
 
-        emo = emotions.get(partner)
-        if emo:
-            if emo not in waiting_users:
-                waiting_users[emo] = []
-            waiting_users[emo].append(partner)
+            emit(
+                "status",
+                "⚠️ Votre partenaire a quitté. En attente d’un nouveau partenaire...",
+                to=partner_sid
+            )
+
+            # remettre le partenaire en attente
+            emotion = emotions.get(partner_sid)
+            if emotion:
+                if emotion not in waiting:
+                    waiting[emotion] = []
+                waiting[emotion].append(partner_sid)
 
     usernames.pop(sid, None)
     emotions.pop(sid, None)
 
 
+# ===== LANCEMENT =====
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
