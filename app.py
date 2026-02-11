@@ -7,11 +7,12 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 waiting = {}        # emotion -> [sid, sid, ...]
 pairs = {}          # sid -> partner_sid
-users = {}          # sid -> {"username": str, "emotion": str}
+connected_users = set()
 
 @socketio.on("connect")
 def handle_connect():
-    emit("count", len(users), broadcast=True)
+    connected_users.add(request.sid)
+    socketio.emit("global_count", len(connected_users))
 
 @app.route("/")
 def index():
@@ -78,7 +79,8 @@ def leave():
 @socketio.on("disconnect")
 def disconnect():
     sid = request.sid
-
+    connected_users.discard(sid)
+    socketio.emit("global_count", len(connected_users))
     if sid not in users:
         return
 
@@ -102,4 +104,5 @@ def disconnect():
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
