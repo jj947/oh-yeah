@@ -44,6 +44,9 @@ def on_join(data):
         waiting[emotion] = sid
         emit("status", "⏳ En attente d’un partenaire...", to=sid)
 
+@socketio.on("message")
+def handle_message(data):
+    msg = data["message"]
 
 @socketio.on("send_message")
 def on_message(data):
@@ -98,3 +101,4 @@ def on_disconnect():
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
