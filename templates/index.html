@@ -107,7 +107,9 @@ button:hover {
 
 <div id="menu">
     <h1>Oh Yeah</h1>
-    <div class="counter">👥 En ligne : <span id="count">0</span></div>
+    <div class="global-counter">
+    👥 <span id="globalCount">0</span> utilisateurs en ligne
+</div>
 
     <input id="username" placeholder="Ton pseudo">
 
@@ -140,9 +142,9 @@ button:hover {
 
 <script>
 const socket = io();
-
-socket.on("count", n => {
-    document.getElementById("count").innerText = n;
+    
+socket.on("global_count", (count) => {
+    document.getElementById("globalCount").innerText = count;
 });
 
 socket.on("status", txt => {
@@ -186,3 +188,4 @@ function leave() {
 </script>
 </body>
 </html>
+
