@@ -2,172 +2,115 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Émotion Chat</title>
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<title>Oh Yeah</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
 <style>
-* {
-    box-sizing: border-box;
-}
-
 body {
     margin: 0;
-    height: 100vh;
-    background: linear-gradient(135deg, #1e1e2f, #2a2a40);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: "Segoe UI", sans-serif;
-}
-.system-message {
-    text-align: center;
-    font-size: 13px;
-    color: #a1a1aa;
-    margin: 10px 0;
-    font-style: italic;
-}
-
-#app {
-    width: 380px;
-    height: 620px;
-    background: #12121c;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-    display: flex;
-    flex-direction: column;
+    font-family: Arial, sans-serif;
+    background: #0f172a;
     color: white;
 }
 
-header {
-    padding: 16px;
+.container {
+    max-width: 420px;
+    margin: auto;
+    padding: 20px;
+}
+
+.hidden { display: none; }
+
+h1 {
     text-align: center;
-    border-bottom: 1px solid #2c2c3a;
 }
 
-header h1 {
-    margin: 0;
-    font-size: 20px;
-}
-
-#global {
-    font-size: 13px;
+.counter {
+    text-align: center;
     opacity: 0.7;
+    margin-bottom: 10px;
 }
 
-section {
-    flex: 1;
-    padding: 16px;
-}
-
-input, select, button {
+select, input, button {
     width: 100%;
     padding: 12px;
-    margin-top: 12px;
-    border-radius: 10px;
+    margin-top: 10px;
+    border-radius: 8px;
     border: none;
-    font-size: 14px;
-}
-
-input, select {
-    background: #1e1e2f;
-    color: white;
 }
 
 button {
-    background: #6c63ff;
+    background: #6366f1;
     color: white;
+    font-weight: bold;
     cursor: pointer;
-    transition: 0.2s;
 }
 
 button:hover {
-    background: #5a52e0;
+    background: #4f46e5;
 }
 
-#chat {
-    display: none;
+.chat {
+    display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 70vh;
 }
 
-
-#status {
+.status {
     text-align: center;
-    font-size: 14px;
-    margin-bottom: 8px;
-    opacity: 0.85;
+    margin: 10px 0;
+    opacity: 0.8;
 }
 
-#messages {
-    flex: 1;                   /* prend l’espace dispo */
-    background: #181825;
-    border-radius: 12px;
+.messages {
+    flex: 1;
+    overflow-y: auto;
     padding: 10px;
-    overflow-y: auto;          /* SCROLL vertical */
-    min-height: 0;             /* TRÈS IMPORTANT */
+    background: #020617;
+    border-radius: 8px;
 }
-
 
 .msg {
-    max-width: 75%;
-    padding: 10px 14px;
     margin-bottom: 8px;
-    border-radius: 14px;
-    font-size: 14px;
-    line-height: 1.4;
 }
 
-.me {
-    background: #6c63ff;
-    margin-left: auto;
+.self {
+    text-align: right;
+    color: #a5b4fc;
 }
 
 .other {
-    background: #2c2c3a;
+    text-align: left;
+    color: #e5e7eb;
 }
 
-    
-#inputBar {
-    flex-shrink: 0;
-}
-
-#inputBar {
+.input-zone {
     display: flex;
-    gap: 8px;
     margin-top: 10px;
 }
 
-#inputBar input {
+.input-zone input {
     flex: 1;
+    padding: 12px;
+    border-radius: 8px 0 0 8px;
 }
 
-    #inputBar textarea {
-    resize: none;          /* empêche l'agrandissement manuel */
-    background: #1e1e2f;
-    color: white;
-    border-radius: 12px;
-    padding: 10px;
-    font-size: 14px;
-    height: 60px;          /* HAUTEUR FIXE */
-    overflow-y: auto;
-}
-
-#leave {
-    margin-top: 10px;
-    background: #e63946;
+.input-zone button {
+    width: 80px;
+    border-radius: 0 8px 8px 0;
 }
 </style>
 </head>
 
 <body>
+<div class="container">
 
-<div id="app">
-<header>
-    <h1>Chat par émotion</h1>
-    <div id="global">0 en ligne</div>
-</header>
+<div id="menu">
+    <h1>Oh Yeah</h1>
+    <div class="counter">👥 En ligne : <span id="count">0</span></div>
 
-<section id="menu">
+    <input id="username" placeholder="Ton pseudo">
+
     <select id="emotion">
         <option value="">Choisis une émotion</option>
         <option value="heureux">😊 Heureux</option>
@@ -176,91 +119,70 @@ button:hover {
         <option value="calme">😌 Calme</option>
         <option value="amour">❤️ Amour</option>
     </select>
+
     <button onclick="join()">Entrer</button>
-</section>
-
-<section id="chat">
-    <div id="status"></div>
-    <div id="messages"></div>
-
-    <div class="input-bar">
-    <input id="msg">
-    <button onclick="send()">Envoyer</button>
 </div>
 
+<div id="chat" class="hidden chat">
+    <div class="status" id="status"></div>
 
-    <button id="leave" onclick="leave()">Retour au menu</button>
-</section>
+    <div class="messages" id="messages"></div>
+
+    <div class="input-zone">
+        <input id="message" placeholder="Écris ton message">
+        <button onclick="send()">Envoyer</button>
+    </div>
+
+    <button onclick="leave()">⬅ Retour</button>
+</div>
+
 </div>
 
 <script>
 const socket = io();
-socket.on("status", (text) => {
-    addSystemMessage(text);
-});
-function addSystemMessage(text) {
-    const div = document.createElement("div");
-    div.className = "system-message";
-    div.innerText = text;
 
-    const messages = document.getElementById("messages");
-    messages.appendChild(div);
-
-    messages.scrollTop = messages.scrollHeight;
-}
-
-function join() {
-    socket.emit("join", { emotion: emotion.value });
-}
-
-socket.on("enter_chat", () => {
-    menu.style.display = "none";
-    chat.style.display = "flex";
+socket.on("count", n => {
+    document.getElementById("count").innerText = n;
 });
 
-function send() {
-    const input = document.getElementById("msg");
-    const text = input.value.trim();
-
-    if (text === "") return;
-
-    socket.emit("message", { message: text });
-
-    addMessage("Moi", text);
-    input.value = "";
-}
-
+socket.on("status", txt => {
+    document.getElementById("status").innerText = txt;
+});
 
 socket.on("message", data => {
     const div = document.createElement("div");
-    div.className = "msg " + (data.self ? "me" : "other");
-    div.textContent = data.text;
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
+    div.className = "msg " + (data.self ? "self" : "other");
+    div.innerText = data.from + " : " + data.text;
+
+    const box = document.getElementById("messages");
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
 });
 
-socket.on("status", text => {
-    status.textContent = text;
-});
+function join() {
+    const u = username.value.trim();
+    const e = emotion.value;
 
-socket.on("global_count", n => {
-    global.textContent = n + " en ligne";
-});
+    if (!u || !e) return alert("Remplis tout");
+
+    socket.emit("join", { username: u, emotion: e });
+
+    menu.classList.add("hidden");
+    chat.classList.remove("hidden");
+}
+
+function send() {
+    const m = message.value.trim();
+    if (!m) return;
+
+    socket.emit("send_message", { message: m });
+    message.value = "";
+}
 
 function leave() {
     socket.emit("leave");
+    location.reload();
 }
-
-socket.on("return_menu", () => {
-    chat.style.display = "none";
-    menu.style.display = "block";
-    messages.innerHTML = "";
-    status.textContent = "";
-});
 </script>
-
 </body>
 </html>
-
-
-
