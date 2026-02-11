@@ -5,9 +5,9 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret"
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-waiting = {}        # emotion -> sid
-pairs = {}          # sid -> sid
-connected = set()   # sids connectés
+waiting = {}        # emotion -> [sid, sid, ...]
+pairs = {}          # sid -> partner_sid
+users = {}          # sid -> {"username": str, "emotion": str}
 
 
 @app.route("/")
@@ -15,90 +15,87 @@ def index():
     return render_template("index.html")
 
 
-def update_global_counter():
-    socketio.emit("global_count", len(connected))
-
-
-@socketio.on("connect")
-def on_connect():
-    connected.add(request.sid)
-    update_global_counter()
+def broadcast_count():
+    emit("count", len(users), broadcast=True)
 
 
 @socketio.on("join")
-def on_join(data):
+def join(data):
     sid = request.sid
+    username = data["username"]
     emotion = data["emotion"]
 
-    emit("enter_chat", to=sid)
+    users[sid] = {"username": username, "emotion": emotion}
+    broadcast_count()
 
-    if emotion in waiting:
-        partner = waiting.pop(emotion)
+    waiting.setdefault(emotion, [])
+
+    if waiting[emotion]:
+        partner = waiting[emotion].pop(0)
 
         pairs[sid] = partner
         pairs[partner] = sid
 
-        emit("status", "🎉 Partenaire trouvé !", to=sid)
-        emit("status", "🎉 Partenaire trouvé !", to=partner)
+        emit("status", "🎉 Partenaire trouvé", to=sid)
+        emit("status", "🎉 Partenaire trouvé", to=partner)
+
     else:
-        waiting[emotion] = sid
+        waiting[emotion].append(sid)
         emit("status", "⏳ En attente d’un partenaire...", to=sid)
 
-@socketio.on("message")
-def handle_message(data):
-    msg = data["message"]
 
 @socketio.on("send_message")
-def on_message(data):
+def send_message(data):
     sid = request.sid
-    msg = data["message"]
+    message = data["message"]
 
     if sid not in pairs:
         return
 
     partner = pairs[sid]
 
-    emit("message", {"text": msg, "self": True}, to=sid)
-    emit("message", {"text": msg, "self": False}, to=partner)
+    emit("message", {
+        "from": users[sid]["username"],
+        "text": message,
+        "self": False
+    }, to=partner)
+
+    emit("message", {
+        "from": users[sid]["username"],
+        "text": message,
+        "self": True
+    }, to=sid)
 
 
 @socketio.on("leave")
-def on_leave():
-    sid = request.sid
-
-    # Était en attente
-    for emo in list(waiting):
-        if waiting[emo] == sid:
-            waiting.pop(emo)
-            break
-
-    # Était en chat
-    if sid in pairs:
-        partner = pairs.pop(sid)
-        pairs.pop(partner, None)
-
-        emit("status", "⚠️ Votre partenaire a quitté.", to=partner)
-
-    emit("return_menu", to=sid)
+def leave():
+    disconnect()
 
 
 @socketio.on("disconnect")
-def on_disconnect():
+def disconnect():
     sid = request.sid
-    connected.discard(sid)
 
-    for emo in list(waiting):
-        if waiting[emo] == sid:
-            waiting.pop(emo)
+    if sid not in users:
+        return
+
+    emotion = users[sid]["emotion"]
+
+    if sid in waiting.get(emotion, []):
+        waiting[emotion].remove(sid)
 
     if sid in pairs:
         partner = pairs.pop(sid)
         pairs.pop(partner, None)
-        emit("status", "⚠️ Votre partenaire a quitté.", to=partner)
 
-    update_global_counter()
+        emit("status", "⚠️ Votre partenaire a quitté", to=partner)
+
+        waiting.setdefault(users[partner]["emotion"], []).append(partner)
+        emit("status", "⏳ En attente d’un partenaire...", to=partner)
+
+    users.pop(sid, None)
+    broadcast_count()
 
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
-
