@@ -77,32 +77,46 @@ def leave():
 
 
 @socketio.on("disconnect")
-def disconnect():
+def handle_disconnect():
     sid = request.sid
+
+    # --- 1. Retirer du compteur global (si tu l’as) ---
     connected_users.discard(sid)
     socketio.emit("global_count", len(connected_users))
-    if sid not in users:
-        return
 
-    emotion = users[sid]["emotion"]
+    # --- 2. S’il était en attente ---
+    for emotion, waiting_sid in list(waiting_users.items()):
+        if waiting_sid == sid:
+            waiting_users.pop(emotion, None)
+            return  # rien d’autre à faire
 
-    if sid in waiting.get(emotion, []):
-        waiting[emotion].remove(sid)
+    # --- 3. S’il était en discussion ---
+    partner_sid = pairs.pop(sid, None)
 
-    if sid in pairs:
-        partner = pairs.pop(sid)
-        pairs.pop(partner, None)
+    if partner_sid:
+        pairs.pop(partner_sid, None)
 
-        emit("status", "⚠️ Votre partenaire a quitté", to=partner)
+        # prévenir le partenaire SEULEMENT s’il est encore connecté
+        if partner_sid in usernames:
+            emit(
+                "status",
+                "⚠️ Votre partenaire a quitté. En attente d’un nouveau partenaire...",
+                to=partner_sid
+            )
 
-        waiting.setdefault(users[partner]["emotion"], []).append(partner)
-        emit("status", "⏳ En attente d’un partenaire...", to=partner)
+            # le remettre en attente
+            emotion = emotions.get(partner_sid)
+            if emotion:
+                waiting_users[emotion] = partner_sid
 
-    users.pop(sid, None)
-    broadcast_count()
+    # --- 4. Nettoyage ---
+    usernames.pop(sid, None)
+    emotions.pop(sid, None)
+
 
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
 
