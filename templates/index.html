@@ -80,7 +80,9 @@ button:hover {
 #chat {
     display: none;
     flex-direction: column;
+    height: 100%;
 }
+
 
 #status {
     text-align: center;
@@ -90,12 +92,14 @@ button:hover {
 }
 
 #messages {
-    flex: 1;
+    flex: 1;                   /* prend l’espace dispo */
     background: #181825;
     border-radius: 12px;
     padding: 10px;
-    overflow-y: auto;
+    overflow-y: auto;          /* SCROLL vertical */
+    min-height: 0;             /* TRÈS IMPORTANT */
 }
+
 
 .msg {
     max-width: 75%;
@@ -115,6 +119,11 @@ button:hover {
     background: #2c2c3a;
 }
 
+    
+#inputBar {
+    flex-shrink: 0;
+}
+
 #inputBar {
     display: flex;
     gap: 8px;
@@ -123,6 +132,17 @@ button:hover {
 
 #inputBar input {
     flex: 1;
+}
+
+    #inputBar textarea {
+    resize: none;          /* empêche l'agrandissement manuel */
+    background: #1e1e2f;
+    color: white;
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 14px;
+    height: 60px;          /* HAUTEUR FIXE */
+    overflow-y: auto;
 }
 
 #leave {
@@ -157,9 +177,10 @@ button:hover {
     <div id="messages"></div>
 
     <div id="inputBar">
-        <input id="msg" placeholder="Écris un message...">
-        <button onclick="send()">Envoyer</button>
-    </div>
+    <textarea id="msg" rows="3" placeholder="Écris ton message..."></textarea>
+    <button onclick="send()">Envoyer</button>
+</div>
+
 
     <button id="leave" onclick="leave()">Retour au menu</button>
 </section>
@@ -214,3 +235,4 @@ socket.on("return_menu", () => {
 
 </body>
 </html>
+
