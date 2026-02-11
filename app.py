@@ -9,6 +9,9 @@ waiting = {}        # emotion -> [sid, sid, ...]
 pairs = {}          # sid -> partner_sid
 users = {}          # sid -> {"username": str, "emotion": str}
 
+@socketio.on("connect")
+def handle_connect():
+    emit("count", len(users), broadcast=True)
 
 @app.route("/")
 def index():
@@ -16,7 +19,7 @@ def index():
 
 
 def broadcast_count():
-    emit("count", len(users), broadcast=True)
+    socketio.emit("count", len(users))
 
 
 @socketio.on("join")
@@ -99,3 +102,4 @@ def disconnect():
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
