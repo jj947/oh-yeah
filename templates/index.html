@@ -12,6 +12,13 @@ body {
     background: #0f172a;
     color: white;
 }
+.system-message {
+    text-align: center;
+    color: #aaa;
+    font-size: 0.9em;
+    margin: 10px 0;
+    font-style: italic;
+}
 
 .container {
     max-width: 420px;
@@ -147,8 +154,8 @@ socket.on("global_count", (count) => {
     document.getElementById("globalCount").innerText = count;
 });
 
-socket.on("status", txt => {
-    document.getElementById("status").innerText = txt;
+socket.on("status", (text) => {
+    addSystemMessage(text);
 });
 
 socket.on("message", data => {
@@ -160,6 +167,15 @@ socket.on("message", data => {
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
 });
+
+function addSystemMessage(text) {
+    const msg = document.createElement("div");
+    msg.className = "system-message";
+    msg.innerText = text;
+    messages.appendChild(msg);
+    messages.scrollTop = messages.scrollHeight;
+}
+
 
 function join() {
     const u = username.value.trim();
@@ -188,4 +204,5 @@ function leave() {
 </script>
 </body>
 </html>
+
 
