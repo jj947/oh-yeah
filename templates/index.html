@@ -179,8 +179,24 @@ function sendMessage() {
     socket.emit("send_message", { message: input.value });
     input.value = "";
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const backBtn = document.getElementById("backMenuBtn");
+
+    if (!backBtn) {
+        console.error("Bouton retour menu introuvable");
+        return;
+    }
+
+    backBtn.addEventListener("click", () => {
+        console.log("Retour au menu cliqué");
+        window.location.href = "/";
+    });
+});
+
 </script>
 
 </body>
 </html>
+
 
