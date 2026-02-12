@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>OhYeah — Chat émotionnel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="menu-container">
+
+    <div class="menu-card">
+
+        <h1 class="logo">Oh<span>Yeah</span></h1>
+        <p class="subtitle">Discute avec quelqu’un qui ressent la même chose que toi</p>
+
+        <!-- Sélecteur émotion -->
+        <div class="emotion-select">
+            <select id="emotion">
+                <option value="">Choisis une émotion</option>
+                <option value="heureux">😊 Heureux</option>
+                <option value="triste">😢 Triste</option>
+                <option value="enerve">😡 Énervé</option>
+                <option value="calme">😌 Calme</option>
+                <option value="amour">❤️ Amour</option>
+            </select>
+        </div>
+
+        <!-- Compteurs émotions -->
+        <div class="emotion-counters">
+            <div>😊 Heureux <span id="count-heureux">0</span></div>
+            <div>😢 Triste <span id="count-triste">0</span></div>
+            <div>😡 Énervé <span id="count-enerve">0</span></div>
+            <div>😌 Calme <span id="count-calme">0</span></div>
+            <div>❤️ Amour <span id="count-amour">0</span></div>
+        </div>
+
+        <!-- Bouton -->
+        <button id="startChat">Lancer une discussion</button>
+
+    </div>
+
+    <!-- Compteur global -->
+    <div class="global-counter">
+        🌍 <span id="globalCount">0</span> utilisateurs connectés
+    </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="menu.js"></script>
+</body>
+</html>
