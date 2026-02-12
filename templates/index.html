@@ -11,81 +11,44 @@ body {
     font-family: Arial, sans-serif;
     background: #0f172a;
     color: white;
+    display: flex;
+    justify-content: center;
+    height: 100vh;
 }
 
-.system-message {
-    text-align: center;
-    margin: 12px 0;
-    font-size: 0.9em;
-    color: #aaa;
-    font-style: italic;
-}
-
-
-.container {
+.app {
+    width: 100%;
     max-width: 420px;
-    margin: auto;
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    background: #020617;
 }
 
-.hidden { display: none; }
-
-h1 {
+header {
+    padding: 15px;
     text-align: center;
+    background: #020617;
+    border-bottom: 1px solid #1e293b;
 }
 
 .counter {
-    text-align: center;
-    opacity: 0.7;
-    margin-bottom: 10px;
+    font-size: 0.85em;
+    color: #94a3b8;
 }
 
-select, input, button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border-radius: 8px;
-    border: none;
-}
-
-button {
-    background: #6366f1;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #4f46e5;
-}
-
-.chat {
-    display: flex;
-    flex-direction: column;
-    height: 70vh;
-}
-
-.status {
-    text-align: center;
-    margin: 10px 0;
-    opacity: 0.8;
-}
-
-.messages {
+#messages {
     flex: 1;
     overflow-y: auto;
-    padding: 10px;
-    background: #020617;
-    border-radius: 8px;
+    padding: 15px;
 }
 
 .msg {
     margin-bottom: 8px;
 }
 
-.self {
+.me {
     text-align: right;
-    color: #a5b4fc;
+    color: #38bdf8;
 }
 
 .other {
@@ -93,122 +56,95 @@ button:hover {
     color: #e5e7eb;
 }
 
+.system {
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+    margin: 10px 0;
+}
+
 .input-zone {
     display: flex;
-    margin-top: 10px;
+    border-top: 1px solid #1e293b;
 }
 
-.input-zone input {
+textarea {
     flex: 1;
-    padding: 12px;
-    border-radius: 8px 0 0 8px;
+    resize: none;
+    padding: 10px;
+    border: none;
+    outline: none;
+    background: #020617;
+    color: white;
+    height: 60px;
 }
 
-.input-zone button {
+button {
     width: 80px;
-    border-radius: 0 8px 8px 0;
+    background: #38bdf8;
+    border: none;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
 }
 </style>
 </head>
 
 <body>
-<div class="container">
+<div class="app">
 
-<div id="menu">
-    <h1>Oh Yeah</h1>
-    <div class="global-counter">
-    👥 <span id="globalCount">0</span> utilisateurs en ligne
-</div>
-
-    <input id="username" placeholder="Ton pseudo">
-
-    <select id="emotion">
-        <option value="">Choisis une émotion</option>
-        <option value="heureux">😊 Heureux</option>
-        <option value="triste">😢 Triste</option>
-        <option value="enerve">😡 Énervé</option>
-        <option value="calme">😌 Calme</option>
-        <option value="amour">❤️ Amour</option>
-    </select>
-
-    <button onclick="join()">Entrer</button>
-</div>
-
-<div id="chat" class="hidden chat">
-    <div class="status" id="status"></div>
-
-    <div class="messages" id="messages"></div>
-
-    <div class="input-zone">
-        <input id="message" placeholder="Écris ton message">
-        <button onclick="send()">Envoyer</button>
+<header>
+    <h2>Oh Yeah</h2>
+    <div class="counter">
+        👥 <span id="globalCount">0</span> en ligne
     </div>
+</header>
 
-    <button onclick="leave()">⬅ Retour</button>
+<div id="messages"></div>
+
+<div class="input-zone">
+    <textarea id="messageInput" placeholder="Écris ton message..."></textarea>
+    <button onclick="sendMessage()">Envoyer</button>
 </div>
 
 </div>
 
 <script>
 const socket = io();
-    
-socket.on("global_count", (count) => {
-    document.getElementById("globalCount").innerText = count;
+const messages = document.getElementById("messages");
+
+const username = prompt("Ton pseudo ?");
+const emotion = prompt("Émotion ? (heureux / triste / enerve / calme)");
+
+socket.emit("join", { username, emotion });
+
+socket.on("global_count", (n) => {
+    document.getElementById("globalCount").innerText = n;
 });
 
 socket.on("status", (text) => {
-    console.log("STATUS REÇU :", text);
-    addSystemMessage(text);
-});
-
-socket.on("message", data => {
     const div = document.createElement("div");
-    div.className = "msg " + (data.self ? "self" : "other");
-    div.innerText = data.from + " : " + data.text;
-
-    const box = document.getElementById("messages");
-    box.appendChild(div);
-    box.scrollTop = box.scrollHeight;
-});
-
-const messages = document.getElementById("messages");
-
-function addSystemMessage(text) {
-    const div = document.createElement("div");
-    div.className = "system-message";
+    div.className = "system";
     div.innerText = text;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
-}
+});
 
+socket.on("message", (data) => {
+    const div = document.createElement("div");
+    div.className = "msg " + (data.from === "me" ? "me" : "other");
+    div.innerText = (data.from === "me" ? "Moi" : data.from) + " : " + data.message;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+});
 
-function join() {
-    const u = username.value.trim();
-    const e = emotion.value;
-
-    if (!u || !e) return alert("Remplis tout");
-
-    socket.emit("join", { username: u, emotion: e });
-
-    menu.classList.add("hidden");
-    chat.classList.remove("hidden");
-}
-
-function send() {
-    const m = message.value.trim();
-    if (!m) return;
-
-    socket.emit("send_message", { message: m });
-    message.value = "";
-}
-
-function leave() {
-    socket.emit("leave");
-    location.reload();
+function sendMessage() {
+    const input = document.getElementById("messageInput");
+    if (input.value.trim() === "") return;
+    socket.emit("send_message", { message: input.value });
+    input.value = "";
 }
 </script>
+
 </body>
 </html>
-
-
-
