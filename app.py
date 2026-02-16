@@ -10,7 +10,7 @@ waiting_users = {}     # emotion -> sid
 pairs = {}             # sid -> sid
 usernames = {}         # sid -> username
 emotions = {}          # sid -> emotion
-connected_users = set()
+connected_users = 0
 
 
 @app.route("/chat")
@@ -19,9 +19,10 @@ def chat():
 
 
 @socketio.on("connect")
-def on_connect():
-    connected_users.add(request.sid)
-    socketio.emit("global_count", len(connected_users))
+def handle_connect():
+    global connected_users
+    connected_users += 1
+    socketio.emit("global_count", connected_users)
 
 
 @socketio.on("join")
@@ -68,11 +69,10 @@ def on_message(data):
 
 
 @socketio.on("disconnect")
-def on_disconnect():
-    sid = request.sid
-
-    connected_users.discard(sid)
-    socketio.emit("global_count", len(connected_users))
+def handle_disconnect():
+    global connected_users
+    connected_users -= 1
+    socketio.emit("global_count", connected_users)
 
     # s’il attendait
     for emo, wsid in list(waiting_users.items()):
@@ -101,4 +101,5 @@ def on_disconnect():
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
