@@ -13,9 +13,9 @@ emotions = {}          # sid -> emotion
 connected_users = set()
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+@app.route("/chat")
+def chat():
+    return render_template("chat.html")
 
 
 @socketio.on("connect")
@@ -101,3 +101,4 @@ def on_disconnect():
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
