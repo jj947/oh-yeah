@@ -74,6 +74,24 @@ def on_message(data):
             "message": msg
         }, to=sid)
 
+@socketio.on("message")
+def handle_message(data):
+    sid = request.sid
+    msg = data["message"]
+
+    if sid in pairs:
+        partner_sid = pairs[sid]
+
+        payload = {
+            "from": usernames[sid],
+            "message": msg
+        }
+
+        # pour l'autre
+        emit("message", payload, to=partner_sid)
+        # pour soi
+        emit("message", payload, to=sid)
+
 
 @socketio.on("disconnect")
 def handle_disconnect():
@@ -108,6 +126,7 @@ def handle_disconnect():
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
 
 
