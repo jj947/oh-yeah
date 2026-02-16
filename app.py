@@ -47,7 +47,14 @@ def handle_join(data):
     usernames[sid] = username
     emotions[sid] = emotion
 
+    # ✅ créer la file si elle n'existe pas
+    if emotion not in waiting_users:
+        waiting_users[emotion] = []
+
     queue = waiting_users[emotion]
+
+    # ✅ retirer les SID morts éventuels
+    queue[:] = [s for s in queue if s != sid]
 
     if len(queue) > 0:
         partner_sid = queue.pop(0)
@@ -58,9 +65,13 @@ def handle_join(data):
         emit("status", "🎉 Partenaire trouvé !", to=sid)
         emit("status", "🎉 Partenaire trouvé !", to=partner_sid)
 
+        print(f"MATCH: {sid} <-> {partner_sid} ({emotion})")
+
     else:
         queue.append(sid)
         emit("status", "⏳ En attente d’un partenaire...", to=sid)
+
+        print(f"WAIT: {sid} ({emotion})")
 
 
 @socketio.on("send_message")
@@ -128,6 +139,7 @@ def handle_disconnect():
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
 
 
