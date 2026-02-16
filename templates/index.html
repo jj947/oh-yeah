@@ -29,6 +29,16 @@
         <button onclick="goChat()">Entrer</button>
     </div>
 
+
     <script src="/static/menu.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    const socket = io();
+
+    socket.on("global_count", (count) => {
+        document.getElementById("globalCount").innerText = count;
+    });
+</script>
 </body>
 </html>
+
