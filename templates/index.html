@@ -33,7 +33,10 @@
     <script src="/static/menu.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
-    const socket = io();
+    const socket = io({
+  transports: ["websocket"],
+  upgrade: false
+});
 
     socket.on("global_count", (count) => {
         document.getElementById("globalCount").innerText = count;
@@ -41,4 +44,5 @@
 </script>
 </body>
 </html>
+
 
