@@ -5,66 +5,42 @@
     <title>Oh Yeah</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="menu-page">
+<body>
 
-    <div class="menu-card">
-        <h1>🔥 Oh Yeah</h1>
+<div id="menu">
+    <h1>🔥 Oh Yeah</h1>
 
-        <p class="counter">
-            👥 Utilisateurs en ligne :
-            <span id="globalCount">0</span>
-        </p>
+    <p>👥 En ligne : <span id="globalCount">0</span></p>
 
-        <input id="username" placeholder="Ton pseudo">
+    <input id="username" placeholder="Ton pseudo">
 
-        <select id="emotion">
-            <option value="">Choisis une émotion</option>
-            <option value="heureux">😊 Heureux</option>
-            <option value="triste">😢 Triste</option>
-            <option value="enerve">😡 Énervé</option>
-            <option value="calme">😌 Calme</option>
-            <option value="amour">❤️ Amour</option>
-        </select>
+    <select id="emotion">
+        <option value="">Choisis une émotion</option>
+        <option value="heureux">😊 Heureux</option>
+        <option value="triste">😢 Triste</option>
+        <option value="enerve">😡 Énervé</option>
+        <option value="calme">😌 Calme</option>
+        <option value="amour">❤️ Amour</option>
+    </select>
 
-        <button onclick="goChat()">Entrer</button>
+    <button onclick="goChat()">Entrer</button>
+</div>
+
+<div id="chat" class="hidden">
+    <button onclick="backMenu()">← Menu</button>
+    <p id="status"></p>
+
+    <div id="messages"></div>
+
+    <div class="input-zone">
+        <input id="messageInput" placeholder="Écris ton message…">
+        <button onclick="sendMessage()">Envoyer</button>
     </div>
+</div>
 
-
-    <script src="/static/menu.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
-<script>
-    const socket = io({
-        transports: ["websocket"],
-        upgrade: false
-    });
-
-    socket.on("global_count", (count) => {
-        document.getElementById("globalCount").innerText = count;
-    });
-
-    function goChat() {
-        const username = document.getElementById("username").value.trim();
-        const emotion = document.getElementById("emotion").value;
-
-        if (!username || !emotion) {
-            alert("Choisis un pseudo et une émotion");
-            return;
-        }
-
-        // 🔥 C’EST ÇA QUI MANQUAIT
-        socket.emit("join", {
-            username: username,
-            emotion: emotion
-        });
-
-        // optionnel : rediriger vers la page chat
-        window.location.href = "/chat";
-    }
-</script>
+<script src="/static/menu.js"></script>
+<script src="/static/chat.js"></script>
 
 </body>
 </html>
-
-
-
