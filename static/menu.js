@@ -1,14 +1,18 @@
 function goChat() {
-    const username = document.getElementById("username").value;
+    const username = document.getElementById("username").value.trim();
     const emotion = document.getElementById("emotion").value;
 
     if (!username || !emotion) {
-        alert("Complète tout !");
+        alert("Pseudo et émotion obligatoires");
         return;
     }
 
-    localStorage.setItem("username", username);
-    localStorage.setItem("emotion", emotion);
+    socket.emit("join", {
+        username: username,
+        emotion: emotion
+    });
 
-    window.location.href = "/chat";
+    // afficher l'interface chat
+    document.body.classList.remove("menu-page");
+    document.body.classList.add("chat-page");
 }
