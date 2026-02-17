@@ -1,27 +1,25 @@
-const socket = io({
-  transports: ["websocket"],
-  upgrade: false
+const socket = io();
+
+socket.on("global_count", count => {
+    document.getElementById("globalCount").innerText = count;
 });
 
 function goChat() {
     const username = document.getElementById("username").value;
     const emotion = document.getElementById("emotion").value;
 
-    if (!username || !emotion) {
-        alert("Choisis un pseudo et une émotion");
-        return;
-    }
+    if (!username || !emotion) return alert("Remplis tout");
 
-    // 🔥 C'EST CE QUI MANQUAIT 🔥
-    socket.emit("join", {
-        username: username,
-        emotion: emotion
-    });
+    document.getElementById("menu").classList.add("hidden");
+    document.getElementById("chat").classList.remove("hidden");
 
-    // afficher l’interface chat
-    document.body.classList.remove("menu-page");
-    document.body.classList.add("chat-page");
-
-    document.getElementById("status").innerText =
-        "⏳ En attente d’un partenaire...";
+    socket.emit("join", { username, emotion });
 }
+
+function backMenu() {
+    location.reload();
+}
+
+socket.on("status", msg => {
+    document.getElementById("status").innerText = msg;
+});
