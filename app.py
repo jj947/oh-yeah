@@ -30,6 +30,23 @@ def on_connect():
     global_count += 1
     emit("global_count", global_count, broadcast=True)
 
+@socketio.on("message")
+def handle_message(data):
+    sid = request.sid
+
+    if sid in pairs:
+        partner_sid = pairs[sid]
+
+        emit("message", {
+            "from": usernames[sid],
+            "message": data["message"]
+        }, to=partner_sid)
+
+        # 👇 renvoi à soi-même (TRÈS IMPORTANT)
+        emit("message", {
+            "from": usernames[sid],
+            "message": data["message"]
+        }, to=sid)
 
 @socketio.on("disconnect")
 def on_disconnect():
@@ -105,4 +122,5 @@ def on_message(data):
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
