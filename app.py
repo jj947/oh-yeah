@@ -35,20 +35,32 @@ def on_connect():
 def on_disconnect():
     global global_count
     sid = request.sid
+
     global_count -= 1
     emit("global_count", global_count, broadcast=True)
 
-    # enlever des files d'attente
+    # Enlever de toutes les files d'attente
     for emotion in waiting:
         if sid in waiting[emotion]:
             waiting[emotion].remove(sid)
 
-    # prévenir le partenaire
+    # Si la personne était en discussion
     if sid in pairs:
         partner = pairs[sid]
-        emit("status", "⚠️ Votre partenaire a quitté", to=partner)
-        pairs.pop(partner, None)
+
+        # Nettoyage des paires
         pairs.pop(sid, None)
+        pairs.pop(partner, None)
+
+        # Prévenir le partenaire
+        emit("status", "⚠️ Votre partenaire a quitté. En attente d’un nouveau partenaire...", to=partner)
+
+        # 🔥 REMETTRE le partenaire en attente
+        partner_emotion = users[partner]["emotion"]
+        waiting[partner_emotion].append(partner)
+
+    # Nettoyage utilisateur
+    users.pop(sid, None)
 
 
 @socketio.on("join")
@@ -93,3 +105,4 @@ def on_message(data):
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
+
