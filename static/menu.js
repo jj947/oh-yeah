@@ -10,6 +10,8 @@ function goChat() {
 
     if (!username || !emotion) return alert("Remplis tout");
 
+    window.currentUser = username;
+
     document.getElementById("menu").classList.add("hidden");
     document.getElementById("chat").classList.remove("hidden");
 
@@ -19,7 +21,3 @@ function goChat() {
 function backMenu() {
     location.reload();
 }
-
-socket.on("status", msg => {
-    document.getElementById("status").innerText = msg;
-});
