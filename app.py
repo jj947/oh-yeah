@@ -3,7 +3,12 @@ from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret"
-socketio = SocketIO(app, cors_allowed_origins="*")
+
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode="threading"
+)
 
 waiting = {
     "heureux": [],
@@ -34,24 +39,28 @@ def connect():
 def disconnect():
     global global_count
     sid = request.sid
-    global_count -= 1
+
+    global_count = max(0, global_count - 1)
     emit("global_count", global_count, broadcast=True)
 
+    # enlever des files d'attente
     for emotion in waiting:
         if sid in waiting[emotion]:
             waiting[emotion].remove(sid)
 
+    # gérer la discussion
     if sid in pairs:
-        partner = pairs[sid]
+        partner = pairs.get(sid)
 
-        pairs.pop(partner, None)
         pairs.pop(sid, None)
+        pairs.pop(partner, None)
 
-        emit("status", "⚠️ Votre partenaire a quitté. En attente...", to=partner)
+        if partner and partner in users:
+            emit("status", "⚠️ Votre partenaire a quitté. En attente...", to=partner)
 
-        if partner in users:
-            emotion = users[partner]["emotion"]
-            waiting[emotion].append(partner)
+            emotion = users[partner].get("emotion")
+            if emotion in waiting:
+                waiting[emotion].append(partner)
 
     users.pop(sid, None)
 
@@ -59,20 +68,30 @@ def disconnect():
 @socketio.on("join")
 def join(data):
     sid = request.sid
-    users[sid] = data
-    emotion = data["emotion"]
 
-    queue = waiting[emotion]
+    username = data.get("username")
+    emotion = data.get("emotion")
 
-    if queue:
+    if not username or not emotion:
+        return
+
+    users[sid] = {
+        "username": username,
+        "emotion": emotion
+    }
+
+    queue = waiting.get(emotion)
+
+    if queue and len(queue) > 0:
         partner = queue.pop(0)
+
         pairs[sid] = partner
         pairs[partner] = sid
 
         emit("status", "🎉 Partenaire trouvé !", to=sid)
         emit("status", "🎉 Partenaire trouvé !", to=partner)
     else:
-        queue.append(sid)
+        waiting[emotion].append(sid)
         emit("status", "⏳ En attente d’un partenaire...", to=sid)
 
 
@@ -83,11 +102,19 @@ def message(data):
     if sid not in pairs:
         return
 
-    partner = pairs[sid]
+    if sid not in users:
+        return
+
+    msg = data.get("message")
+    if not msg:
+        return
+
+    partner = pairs.get(sid)
+    username = users[sid].get("username", "Inconnu")
 
     payload = {
-        "from": users[sid]["username"],
-        "message": data["message"]
+        "from": username,
+        "message": msg
     }
 
     emit("message", payload, to=partner)
