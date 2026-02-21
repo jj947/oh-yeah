@@ -2,6 +2,8 @@ const messages = document.getElementById("messages");
 const statusEl = document.getElementById("status");
 
 socket.on("status", msg => {
+    if (!statusEl) return;
+
     statusEl.innerText = msg;
 
     if (msg.includes("Partenaire trouvé")) {
@@ -12,6 +14,8 @@ socket.on("status", msg => {
 });
 
 socket.on("message", data => {
+    if (!messages) return;
+
     const div = document.createElement("div");
     div.classList.add("message");
 
@@ -27,8 +31,9 @@ socket.on("message", data => {
 
 function sendMessage() {
     const input = document.getElementById("messageInput");
-    const msg = input.value.trim();
+    if (!input) return;
 
+    const msg = input.value.trim();
     if (!msg) return;
 
     socket.emit("message", { message: msg });
