@@ -1,5 +1,6 @@
-// socket GLOBAL unique
-window.socket = io();
+window.socket = io({
+    transports: ["websocket"]
+});
 
 socket.on("global_count", count => {
     const el = document.getElementById("globalCount");
@@ -7,7 +8,7 @@ socket.on("global_count", count => {
 });
 
 function goChat() {
-    const username = document.getElementById("username").value;
+    const username = document.getElementById("username").value.trim();
     const emotion = document.getElementById("emotion").value;
 
     if (!username || !emotion) {
