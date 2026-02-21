@@ -1,13 +1,14 @@
-import eventlet
-eventlet.monkey_patch()
-
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret"
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode="threading"
+)
 
 waiting = {
     "heureux": [],
@@ -48,11 +49,13 @@ def disconnect():
 
     if sid in pairs:
         partner = pairs.get(sid)
+
         pairs.pop(sid, None)
         pairs.pop(partner, None)
 
         if partner and partner in users:
             emit("status", "⚠️ Votre partenaire a quitté. En attente...", to=partner)
+
             emotion = users[partner]["emotion"]
             waiting[emotion].append(partner)
 
@@ -95,12 +98,12 @@ def handle_message(data):
     if sid not in pairs:
         return
 
-    partner = pairs[sid]
-    username = users[sid]["username"]
     msg = data.get("message")
-
     if not msg:
         return
+
+    partner = pairs[sid]
+    username = users[sid]["username"]
 
     payload = {
         "from": username,
@@ -112,4 +115,4 @@ def handle_message(data):
 
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app)
