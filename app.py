@@ -1,14 +1,13 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret"
 
-socketio = SocketIO(
-    app,
-    cors_allowed_origins="*",
-    async_mode="threading"
-)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 waiting = {
     "heureux": [],
@@ -43,24 +42,19 @@ def disconnect():
     global_count = max(0, global_count - 1)
     emit("global_count", global_count, broadcast=True)
 
-    # enlever des files d'attente
     for emotion in waiting:
         if sid in waiting[emotion]:
             waiting[emotion].remove(sid)
 
-    # gérer la discussion
     if sid in pairs:
         partner = pairs.get(sid)
-
         pairs.pop(sid, None)
         pairs.pop(partner, None)
 
         if partner and partner in users:
             emit("status", "⚠️ Votre partenaire a quitté. En attente...", to=partner)
-
-            emotion = users[partner].get("emotion")
-            if emotion in waiting:
-                waiting[emotion].append(partner)
+            emotion = users[partner]["emotion"]
+            waiting[emotion].append(partner)
 
     users.pop(sid, None)
 
@@ -80,11 +74,10 @@ def join(data):
         "emotion": emotion
     }
 
-    queue = waiting.get(emotion)
+    queue = waiting[emotion]
 
-    if queue and len(queue) > 0:
+    if queue:
         partner = queue.pop(0)
-
         pairs[sid] = partner
         pairs[partner] = sid
 
@@ -96,21 +89,18 @@ def join(data):
 
 
 @socketio.on("message")
-def message(data):
+def handle_message(data):
     sid = request.sid
 
     if sid not in pairs:
         return
 
-    if sid not in users:
-        return
-
+    partner = pairs[sid]
+    username = users[sid]["username"]
     msg = data.get("message")
+
     if not msg:
         return
-
-    partner = pairs.get(sid)
-    username = users[sid].get("username", "Inconnu")
 
     payload = {
         "from": username,
