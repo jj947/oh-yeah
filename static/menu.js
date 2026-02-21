@@ -1,14 +1,19 @@
-const socket = io();
+// socket GLOBAL unique
+window.socket = io();
 
 socket.on("global_count", count => {
-    document.getElementById("globalCount").innerText = count;
+    const el = document.getElementById("globalCount");
+    if (el) el.innerText = count;
 });
 
 function goChat() {
     const username = document.getElementById("username").value;
     const emotion = document.getElementById("emotion").value;
 
-    if (!username || !emotion) return alert("Remplis tout");
+    if (!username || !emotion) {
+        alert("Remplis tout");
+        return;
+    }
 
     window.currentUser = username;
 
