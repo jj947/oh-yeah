@@ -15,7 +15,6 @@ waiting = {
 
 pairs = {}
 users = {}
-
 global_count = 0
 
 
@@ -25,63 +24,40 @@ def index():
 
 
 @socketio.on("connect")
-def on_connect():
+def connect():
     global global_count
     global_count += 1
     emit("global_count", global_count, broadcast=True)
 
-@socketio.on("message")
-def handle_message(data):
-    sid = request.sid
-
-    if sid in pairs:
-        partner_sid = pairs[sid]
-
-        emit("message", {
-            "from": usernames[sid],
-            "message": data["message"]
-        }, to=partner_sid)
-
-        # 👇 renvoi à soi-même (TRÈS IMPORTANT)
-        emit("message", {
-            "from": usernames[sid],
-            "message": data["message"]
-        }, to=sid)
 
 @socketio.on("disconnect")
-def on_disconnect():
+def disconnect():
     global global_count
     sid = request.sid
 
     global_count -= 1
     emit("global_count", global_count, broadcast=True)
 
-    # Enlever de toutes les files d'attente
     for emotion in waiting:
         if sid in waiting[emotion]:
             waiting[emotion].remove(sid)
 
-    # Si la personne était en discussion
     if sid in pairs:
         partner = pairs[sid]
 
-        # Nettoyage des paires
-        pairs.pop(sid, None)
         pairs.pop(partner, None)
+        pairs.pop(sid, None)
 
-        # Prévenir le partenaire
-        emit("status", "⚠️ Votre partenaire a quitté. En attente d’un nouveau partenaire...", to=partner)
+        emit("status", "⚠️ Votre partenaire a quitté. En attente...", to=partner)
 
-        # 🔥 REMETTRE le partenaire en attente
         partner_emotion = users[partner]["emotion"]
         waiting[partner_emotion].append(partner)
 
-    # Nettoyage utilisateur
     users.pop(sid, None)
 
 
 @socketio.on("join")
-def on_join(data):
+def join(data):
     sid = request.sid
     users[sid] = data
 
@@ -100,27 +76,25 @@ def on_join(data):
         emit("status", "⏳ En attente d’un partenaire...", to=sid)
 
 
-@socketio.on("send_message")
-def on_message(data):
+@socketio.on("message")
+def message(data):
     sid = request.sid
 
     if sid not in pairs:
         return
 
     partner = pairs[sid]
-    emit("receive_message", {
+
+    emit("message", {
         "from": users[sid]["username"],
         "message": data["message"]
     }, to=partner)
 
-    # afficher aussi côté envoyeur
-    emit("receive_message", {
-        "from": "Moi",
+    emit("message", {
+        "from": users[sid]["username"],
         "message": data["message"]
     }, to=sid)
 
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
-
-
