@@ -1,6 +1,4 @@
-window.socket = io({
-    transports: ["websocket"]
-});
+window.socket = io();
 
 socket.on("global_count", count => {
     const el = document.getElementById("globalCount");
