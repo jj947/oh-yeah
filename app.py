@@ -34,7 +34,6 @@ def connect():
 def disconnect():
     global global_count
     sid = request.sid
-
     global_count -= 1
     emit("global_count", global_count, broadcast=True)
 
@@ -50,8 +49,9 @@ def disconnect():
 
         emit("status", "⚠️ Votre partenaire a quitté. En attente...", to=partner)
 
-        partner_emotion = users[partner]["emotion"]
-        waiting[partner_emotion].append(partner)
+        if partner in users:
+            emotion = users[partner]["emotion"]
+            waiting[emotion].append(partner)
 
     users.pop(sid, None)
 
@@ -60,8 +60,8 @@ def disconnect():
 def join(data):
     sid = request.sid
     users[sid] = data
-
     emotion = data["emotion"]
+
     queue = waiting[emotion]
 
     if queue:
@@ -85,15 +85,13 @@ def message(data):
 
     partner = pairs[sid]
 
-    emit("message", {
+    payload = {
         "from": users[sid]["username"],
         "message": data["message"]
-    }, to=partner)
+    }
 
-    emit("message", {
-        "from": users[sid]["username"],
-        "message": data["message"]
-    }, to=sid)
+    emit("message", payload, to=partner)
+    emit("message", payload, to=sid)
 
 
 if __name__ == "__main__":
