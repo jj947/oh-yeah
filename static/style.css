@@ -1,8 +1,9 @@
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
+    font-family: 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at top left, #1e3a8a, #0f172a);
     color: white;
+    overflow: hidden;
 }
 
 .screen {
@@ -17,44 +18,52 @@ body {
 }
 
 .card, .chat-card {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(15px);
+    width: 380px;
     padding: 30px;
-    border-radius: 20px;
-    width: 350px;
-    box-shadow: 0 0 40px rgba(0,0,0,0.5);
-    animation: fadeIn 0.5s ease;
+    border-radius: 25px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(25px);
+    box-shadow: 0 0 50px rgba(0,0,0,0.6);
+    animation: fadeIn 0.6s ease;
 }
 
 .logo {
     text-align: center;
+    font-size: 32px;
     margin-bottom: 10px;
+    text-shadow: 0 0 15px rgba(255,255,255,0.6);
 }
 
 .online {
     text-align: center;
     margin-bottom: 20px;
+    opacity: 0.8;
 }
 
 input, select {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-bottom: 15px;
-    border-radius: 10px;
+    border-radius: 12px;
     border: none;
     outline: none;
 }
 
 .primary-btn, .send-btn {
     width: 100%;
-    padding: 10px;
-    border-radius: 10px;
+    padding: 12px;
+    border-radius: 12px;
     border: none;
     cursor: pointer;
     font-weight: bold;
-    background: linear-gradient(45deg, #6366f1, #8b5cf6);
+    background: linear-gradient(45deg, #6366f1, #ec4899);
     color: white;
-    transition: transform 0.1s ease;
+    transition: all 0.2s ease;
+}
+
+.primary-btn:hover, .send-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(99,102,241,0.4);
 }
 
 .primary-btn:active, .send-btn:active {
@@ -64,29 +73,30 @@ input, select {
 .chat-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .messages {
     height: 300px;
     overflow-y: auto;
     margin-bottom: 10px;
+    padding-right: 5px;
 }
 
 .message {
-    margin-bottom: 10px;
-    animation: messageIn 0.3s ease;
-}
-
-.status {
-    font-weight: bold;
+    margin-bottom: 12px;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    animation: slideUp 0.3s ease;
 }
 
 .status.found {
     color: #22c55e;
+    text-shadow: 0 0 10px #22c55e;
 }
 
-@keyframes messageIn {
+@keyframes slideUp {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
