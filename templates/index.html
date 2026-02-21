@@ -1,47 +1,50 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Oh Yeah</title>
-    <link rel="stylesheet" href="/static/style.css">
+<meta charset="UTF-8">
+<title>Oh Yeah 🔥</title>
+<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<div id="menu">
-    <h1>🔥 Oh Yeah</h1>
+<div id="menu" class="screen">
+    <div class="card">
+        <h1 class="logo">🔥 Oh Yeah</h1>
+        <p class="online">👥 En ligne : <span id="globalCount">0</span></p>
 
-    <p>👥 En ligne : <span id="globalCount">0</span></p>
+        <input id="username" placeholder="Ton pseudo">
+        <select id="emotion">
+            <option value="">Choisis une émotion</option>
+            <option value="heureux">😊 Heureux</option>
+            <option value="triste">😢 Triste</option>
+            <option value="enerve">😡 Énervé</option>
+            <option value="calme">😌 Calme</option>
+            <option value="amour">❤️ Amour</option>
+        </select>
 
-    <input id="username" placeholder="Ton pseudo">
-
-    <select id="emotion">
-        <option value="">Choisis une émotion</option>
-        <option value="heureux">😊 Heureux</option>
-        <option value="triste">😢 Triste</option>
-        <option value="enerve">😡 Énervé</option>
-        <option value="calme">😌 Calme</option>
-        <option value="amour">❤️ Amour</option>
-    </select>
-
-    <button onclick="goChat()">Entrer</button>
+        <button class="primary-btn" onclick="goChat()">Entrer</button>
+    </div>
 </div>
 
-<div id="chat" class="hidden">
-    <button onclick="backMenu()">← Menu</button>
-    <p id="status"></p>
+<div id="chat" class="screen hidden">
+    <div class="chat-card">
+        <div class="chat-header">
+            <span id="status" class="status"></span>
+            <button class="back-btn" onclick="backMenu()">Quitter</button>
+        </div>
 
-    <div id="messages"></div>
+        <div id="messages" class="messages"></div>
 
-    <div class="input-zone">
-        <input id="messageInput" placeholder="Écris ton message…">
-        <button class="send-btn" onclick="sendMessage()">Envoyer</button>
+        <div class="input-zone">
+            <input id="messageInput" placeholder="Écris ton message...">
+            <button class="send-btn" onclick="sendMessage()">Envoyer</button>
+        </div>
     </div>
 </div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="/static/menu.js"></script>
 <script src="/static/chat.js"></script>
+
 </body>
 </html>
-
-
