@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Oh Yeah</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: rgba(0,0,0,0.35);
+            padding: 25px;
+            border-radius: 16px;
+            width: 360px;
+            max-width: 95%;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .counter {
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.85;
+            margin-bottom: 15px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 15px;
+        }
+
+        button {
+            background: #00e6a8;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #00c994;
+        }
+
+        #chat {
+            display: none;
+        }
+
+        #messages {
+            background: rgba(0,0,0,0.4);
+            height: 260px;
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .msg {
+            margin-bottom: 8px;
+        }
+
+        .me {
+            color: #00e6a8;
+        }
+
+        .status {
+            text-align: center;
+            font-style: italic;
+            opacity: 0.8;
+            margin: 6px 0;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .chat-input button {
+            width: 80px;
+            margin-bottom: 0;
+        }
+
+        .back {
+            margin-top: 10px;
+            background: #ff6b6b;
+        }
+
+        .back:hover {
+            background: #e05555;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h1>Oh Yeah 💬</h1>
+
+    <div class="counter" id="counter">
+        🌍 Utilisateurs connectés : 0
+    </div>
+
+    <!-- MENU -->
+    <div id="menu">
+        <input id="username" placeholder="Ton pseudo">
+        <select id="emotion">
+            <option value="">Choisis une émotion</option>
+            <option value="heureux">😊 Heureux</option>
+            <option value="triste">😢 Triste</option>
+            <option value="enerve">😡 Énervé</option>
+            <option value="calme">😌 Calme</option>
+            <option value="amour">❤️ Amour</option>
+        </select>
+        <button onclick="join()">Rejoindre</button>
+    </div>
+
+    <!-- CHAT -->
+    <div id="chat">
+        <div id="messages"></div>
+
+        <div class="chat-input">
+            <input id="messageInput" placeholder="Écris ton message…">
+            <button onclick="sendMessage()">Envoyer</button>
+        </div>
+
+        <button class="back" onclick="goBack()">⬅ Retour au menu</button>
+    </div>
+
+</div>
+
+<script>
+    const socket = io();
+
+    let myUsername = "";
+
+    function join() {
+        const username = document.getElementById("username").value.trim();
+        const emotion = document.getElementById("emotion").value;
+
+        if (!username || !emotion) {
+            alert("Pseudo et émotion obligatoires");
+            return;
+        }
+
+        myUsername = username;
+
+        socket.emit("join", {
+            username: username,
+            emotion: emotion
+        });
+
+        document.getElementById("menu").style.display = "none";
+        document.getElementById("chat").style.display = "block";
+        document.getElementById("messages").innerHTML = "";
+    }
+
+    function sendMessage() {
+        const input = document.getElementById("messageInput");
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        socket.emit("message", { message: msg });
+
+        addMessage(myUsername, msg, true);
+        input.value = "";
+    }
+
+    function addMessage(user, msg, me = false) {
+        const div = document.createElement("div");
+        div.className = "msg";
+        div.innerHTML = `<strong class="${me ? 'me' : ''}">${user}</strong> : ${msg}`;
+        document.getElementById("messages").appendChild(div);
+        document.getElementById("messages").scrollTop = 999999;
+    }
+
+    function addStatus(text) {
+        const div = document.createElement("div");
+        div.className = "status";
+        div.innerText = text;
+        document.getElementById("messages").appendChild(div);
+    }
+
+    function goBack() {
+        location.reload();
+    }
+
+    socket.on("message", data => {
+        addMessage(data.from, data.message);
+    });
+
+    socket.on("status", text => {
+        addStatus(text);
+    });
+
+    socket.on("count", n => {
+        document.getElementById("counter").innerText =
+            `🌍 Utilisateurs connectés : ${n}`;
+    });
+</script>
+
+</body>
+</html>
+
