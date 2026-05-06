@@ -5,7 +5,8 @@ from collections import deque
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret"
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+# ✅ VERSION STABLE (PAS EVENTLET)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 connected = set()
 waiting = {}
@@ -20,15 +21,15 @@ def home():
 
 # ===== CONNECT =====
 @socketio.on("connect")
-def on_connect():
+def connect():
     sid = request.sid
     connected.add(sid)
     emit("count", len(connected), broadcast=True)
 
 
-# ===== JOIN =====
+# ===== JOIN MATCH =====
 @socketio.on("join")
-def on_join(data):
+def join(data):
     sid = request.sid
 
     username = data.get("username")
@@ -39,7 +40,7 @@ def on_join(data):
     if emotion not in waiting:
         waiting[emotion] = deque()
 
-    # remove dead
+    # clean dead users
     waiting[emotion] = deque([s for s in waiting[emotion] if s in connected])
 
     if waiting[emotion]:
@@ -58,7 +59,7 @@ def on_join(data):
 
 # ===== MESSAGE =====
 @socketio.on("message")
-def on_message(data):
+def message(data):
     sid = request.sid
 
     if sid not in pairs:
@@ -75,7 +76,7 @@ def on_message(data):
 
 # ===== DISCONNECT =====
 @socketio.on("disconnect")
-def on_disconnect():
+def disconnect():
     sid = request.sid
 
     connected.discard(sid)
@@ -85,14 +86,14 @@ def on_disconnect():
         if sid in waiting[emo]:
             waiting[emo].remove(sid)
 
-    # handle pair
+    # handle pair break
     if sid in pairs:
         partner = pairs.pop(sid, None)
 
         if partner:
             pairs.pop(partner, None)
 
-            emit("status", "le partenaire a quitté la discussion", to=partner)
+            emit("status", "⚠️ le partenaire a quitté la discussion", to=partner)
 
             emo = users.get(partner, {}).get("emotion")
             if emo:
@@ -106,5 +107,4 @@ def on_disconnect():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    socketio.run(app, host="0.0.0.0", port=port, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=5000)
