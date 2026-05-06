@@ -2,7 +2,7 @@ import os
 import eventlet
 eventlet.monkey_patch()
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 from collections import deque
 
@@ -11,15 +11,12 @@ app.config["SECRET_KEY"] = "secret"
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
-# ===== STATE =====
 connected_users = set()
+waiting = {}
+pairs = {}
+user_data = {}
 
-waiting = {}   # emotion -> deque([sid])
-pairs = {}     # sid -> partner_sid
-user_data = {} # sid -> {username, emotion}
 
-
-# ===== ROUTE =====
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -28,28 +25,28 @@ def index():
 # ===== CONNECT =====
 @socketio.on("connect")
 def connect():
-    sid = eventlet.greenthread.getcurrent()
-    connected_users.add(eventlet.greenthread.getcurrent())
+    sid = request.sid
+    connected_users.add(sid)
     emit("count", len(connected_users), broadcast=True)
 
 
 # ===== JOIN =====
 @socketio.on("join")
 def join(data):
-    sid = eventlet.greenthread.getcurrent()
+    sid = request.sid
 
     username = data.get("username")
     emotion = data.get("emotion")
 
-    user_data[sid] = {
-        "username": username,
-        "emotion": emotion
-    }
+    user_data[sid] = {"username": username, "emotion": emotion}
 
     if emotion not in waiting:
         waiting[emotion] = deque()
 
-    # match
+    # 🔥 CLEAN DEAD SIDS (important)
+    waiting[emotion] = deque([s for s in waiting[emotion] if s in connected_users])
+
+    # MATCH
     if waiting[emotion]:
         partner = waiting[emotion].popleft()
 
@@ -67,14 +64,13 @@ def join(data):
 # ===== MESSAGE =====
 @socketio.on("message")
 def message(data):
-    sid = eventlet.greenthread.getcurrent()
+    sid = request.sid
 
     if sid in pairs:
         partner = pairs[sid]
 
         emit("message", {
             "from": user_data[sid]["username"],
-            "emotion": user_data[sid]["emotion"],
             "message": data["message"]
         }, to=partner)
 
@@ -82,7 +78,7 @@ def message(data):
 # ===== DISCONNECT =====
 @socketio.on("disconnect")
 def disconnect():
-    sid = eventlet.greenthread.getcurrent()
+    sid = request.sid
 
     connected_users.discard(sid)
 
@@ -91,7 +87,7 @@ def disconnect():
         if sid in waiting[emo]:
             waiting[emo].remove(sid)
 
-    # handle pair
+    # handle pair break
     if sid in pairs:
         partner = pairs.pop(sid, None)
 
@@ -102,7 +98,9 @@ def disconnect():
 
             emo = user_data.get(partner, {}).get("emotion")
             if emo:
-                waiting.setdefault(emo, deque()).append(partner)
+                if emo not in waiting:
+                    waiting[emo] = deque()
+                waiting[emo].append(partner)
 
     user_data.pop(sid, None)
 
