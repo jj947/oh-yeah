@@ -1,8 +1,8 @@
 import eventlet
 eventlet.monkey_patch()
 
-from app import app, socketio
 import os
+from app import app, socketio
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
