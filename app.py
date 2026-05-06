@@ -16,7 +16,42 @@ waiting = {}
 pairs = {}
 users = {}
 
+def try_match(emotion):
 
+    if emotion not in waiting:
+        return
+
+    # nettoyer utilisateurs invalides
+    waiting[emotion] = deque([
+        s for s in waiting[emotion]
+        if s in connected and s not in pairs
+    ])
+
+    # match tant qu'il y a au moins 2 personnes
+    while len(waiting[emotion]) >= 2:
+
+        sid1 = waiting[emotion].popleft()
+        sid2 = waiting[emotion].popleft()
+
+        if sid1 == sid2:
+            continue
+
+        pairs[sid1] = sid2
+        pairs[sid2] = sid1
+
+        socketio.emit(
+            "status",
+            "🎉 partenaire trouvé ! vous pouvez discuter",
+            to=sid1
+        )
+
+        socketio.emit(
+            "status",
+            "🎉 partenaire trouvé ! vous pouvez discuter",
+            to=sid2
+        )
+
+        print("MATCH:", sid1, sid2)
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -37,6 +72,7 @@ def connect():
 # ===== JOIN =====
 @socketio.on("join")
 def join(data):
+
     sid = request.sid
 
     username = data["username"]
@@ -47,51 +83,18 @@ def join(data):
         "emotion": emotion
     }
 
-    print("JOIN:", username, emotion, sid)
-
     if emotion not in waiting:
         waiting[emotion] = deque()
 
-    # enlever users morts
-    waiting[emotion] = deque([
-        s for s in waiting[emotion]
-        if s in connected and s not in pairs
-    ])
+    waiting[emotion].append(sid)
 
-    # MATCH
-    if len(waiting[emotion]) > 0:
+    socketio.emit(
+        "status",
+        "⏳ en attente d'un partenaire",
+        to=sid
+    )
 
-        partner = waiting[emotion].popleft()
-
-        if partner == sid:
-            waiting[emotion].append(sid)
-            return
-
-        pairs[sid] = partner
-        pairs[partner] = sid
-
-        socketio.emit(
-            "status",
-            "🎉 partenaire trouvé ! vous pouvez discuter",
-            to=sid
-        )
-
-        socketio.emit(
-            "status",
-            "🎉 partenaire trouvé ! vous pouvez discuter",
-            to=partner
-        )
-
-        print("MATCH:", sid, partner)
-
-    else:
-        waiting[emotion].append(sid)
-
-        socketio.emit(
-            "status",
-            "⏳ en attente d'un partenaire",
-            to=sid
-        )
+    try_match(emotion)
 
 
 # ===== MESSAGE =====
@@ -149,7 +152,7 @@ def disconnect():
                 waiting[emo] = deque()
 
             waiting[emo].append(partner)
-
+            try_match(emo)
     users.pop(sid, None)
 
     socketio.emit("count", len(connected))
