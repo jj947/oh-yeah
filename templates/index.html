@@ -129,6 +129,9 @@ button {
 
     <input id="msg" placeholder="message...">
     <button onclick="send()">envoyer</button>
+    <button onclick="nextPartner()">
+    🔄 Changer de partenaire
+    </button>
 </div>
 
 </div>
@@ -154,7 +157,11 @@ function join() {
     document.getElementById("menu").style.display="none";
     document.getElementById("chat").style.display="block";
 }
+function nextPartner(){
+    socket.emit("next_partner");
 
+    document.getElementById("messages").innerHTML="";
+}
 /* SEND */
 function send() {
     let m = document.getElementById("msg").value;
