@@ -169,9 +169,8 @@ button {
 <script>
 
 const socket = io(window.location.origin, {
-    transports: ["websocket"]
+    transports: ["websocket", "polling"]
 });
-
 let username = "";
 let emotion = "";
 
