@@ -5,7 +5,6 @@ from collections import deque
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret"
 
-# ✅ VERSION STABLE (PAS EVENTLET)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 connected = set()
@@ -27,7 +26,7 @@ def connect():
     emit("count", len(connected), broadcast=True)
 
 
-# ===== JOIN MATCH =====
+# ===== JOIN =====
 @socketio.on("join")
 def join(data):
     sid = request.sid
@@ -40,11 +39,18 @@ def join(data):
     if emotion not in waiting:
         waiting[emotion] = deque()
 
-    # clean dead users
-    waiting[emotion] = deque([s for s in waiting[emotion] if s in connected])
+    # 🔥 CLEAN : éviter doublons / ghosts
+    waiting[emotion] = deque([s for s in waiting[emotion] if s in connected and s not in pairs])
 
+    # MATCH
     if waiting[emotion]:
         partner = waiting[emotion].popleft()
+
+        # sécurité double match
+        if partner in pairs:
+            waiting[emotion].append(partner)
+            waiting[emotion].appendleft(sid)
+            return
 
         pairs[sid] = partner
         pairs[partner] = sid
@@ -69,7 +75,6 @@ def message(data):
 
     emit("message", {
         "from": users[sid]["username"],
-        "emotion": users[sid]["emotion"],
         "message": data["message"]
     }, to=partner)
 
@@ -83,22 +88,20 @@ def disconnect():
 
     # remove waiting
     for emo in list(waiting.keys()):
-        if sid in waiting[emo]:
-            waiting[emo].remove(sid)
+        waiting[emo] = deque([s for s in waiting[emo] if s != sid])
 
-    # handle pair break
+    # handle pair
     if sid in pairs:
         partner = pairs.pop(sid, None)
 
         if partner:
             pairs.pop(partner, None)
 
-            emit("status", "⚠️ le partenaire a quitté la discussion", to=partner)
+            emit("status", "le partenaire a quitté la discussion", to=partner)
 
             emo = users.get(partner, {}).get("emotion")
             if emo:
-                if emo not in waiting:
-                    waiting[emo] = deque()
+                waiting.setdefault(emo, deque())
                 waiting[emo].append(partner)
 
     users.pop(sid, None)
