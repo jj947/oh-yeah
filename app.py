@@ -52,6 +52,43 @@ def try_match(emotion):
         )
 
         print("MATCH:", sid1, sid2)
+@socketio.on("next_partner")
+def next_partner():
+
+    sid = request.sid
+
+    if sid in pairs:
+
+        partner = pairs.pop(sid)
+
+        if partner in pairs:
+            pairs.pop(partner)
+
+            socketio.emit(
+                "status",
+                "⚠️ votre partenaire est parti",
+                to=partner
+            )
+
+            emo = users[partner]["emotion"]
+
+            waiting.setdefault(emo, deque())
+            waiting[emo].append(partner)
+
+            try_match(emo)
+
+    emo = users[sid]["emotion"]
+
+    waiting.setdefault(emo, deque())
+    waiting[emo].append(sid)
+
+    socketio.emit(
+        "status",
+        "🔎 recherche d'un nouveau partenaire...",
+        to=sid
+    )
+
+    try_match(emo)
 @app.route("/")
 def index():
     return render_template("index.html")
