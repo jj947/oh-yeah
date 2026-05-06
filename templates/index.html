@@ -11,7 +11,7 @@
 body {
     margin:0;
     font-family: Arial;
-    background: linear-gradient(135deg,#0f172a,#1e293b);
+    background: radial-gradient(circle at top, #111827, #0f172a);
     color:white;
     height:100vh;
     display:flex;
@@ -19,8 +19,8 @@ body {
     align-items:center;
 }
 
-/* ===== TOP BAR ===== */
-.topbar {
+/* TOP BAR */
+.top {
     position:fixed;
     top:0;
     width:100%;
@@ -31,24 +31,14 @@ body {
     backdrop-filter: blur(10px);
 }
 
-.counter {
-    font-weight:bold;
-}
-
-.settings-btn {
-    cursor:pointer;
-}
-
-/* ===== CARD ===== */
 .card {
     width:380px;
     background:rgba(255,255,255,0.05);
     padding:20px;
     border-radius:15px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
 
-/* ===== INPUTS ===== */
+/* INPUT */
 input, select, button {
     width:100%;
     padding:10px;
@@ -63,7 +53,7 @@ button {
     font-weight:bold;
 }
 
-/* ===== CHAT ===== */
+/* CHAT */
 #chat { display:none; }
 
 #messages {
@@ -74,37 +64,31 @@ button {
     border-radius:10px;
 }
 
-.msg {
-    margin:6px 0;
-}
+.msg { margin:5px 0; }
 
-.me {
-    color:#22c55e;
-}
+.me { color:#22c55e; }
 
 .status {
     text-align:center;
-    font-style:italic;
     opacity:0.8;
+    font-style:italic;
 }
 
-/* ===== SETTINGS MODAL ===== */
-.modal {
-    display:none;
-    position:fixed;
-    top:0;left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.6);
-    justify-content:center;
-    align-items:center;
+.badge {
+    font-size:12px;
+    opacity:0.7;
 }
 
-.modal-content {
-    background:#111827;
-    padding:20px;
-    border-radius:10px;
-    width:300px;
+/* animation */
+@keyframes pulse {
+    0% { opacity:0.5; }
+    50% { opacity:1; }
+    100% { opacity:0.5; }
+}
+
+.waiting {
+    animation: pulse 1.5s infinite;
+    text-align:center;
 }
 
 </style>
@@ -112,9 +96,8 @@ button {
 
 <body>
 
-<div class="topbar">
-    <div class="counter" id="counter">0 connectés</div>
-    <div class="settings-btn" onclick="openSettings()">⚙️</div>
+<div class="top">
+    <div id="counter">0 connectés</div>
 </div>
 
 <div class="card">
@@ -139,7 +122,8 @@ button {
 
 <!-- CHAT -->
 <div id="chat">
-    <div id="status">en attente d'un partenaire</div>
+
+    <div id="status" class="waiting">en attente d'un partenaire...</div>
 
     <div id="messages"></div>
 
@@ -149,32 +133,16 @@ button {
 
 </div>
 
-<!-- SETTINGS -->
-<div class="modal" id="settings">
-  <div class="modal-content">
-    <h3>Paramètres</h3>
-
-    <label>
-        <input type="checkbox" id="dark"> Dark mode
-    </label>
-
-    <label>
-        <input type="checkbox" id="sound"> Sons
-    </label>
-
-    <button onclick="closeSettings()">Fermer</button>
-  </div>
-</div>
-
 <script>
 
 const socket = io(window.location.origin, {
     transports: ["websocket", "polling"]
 });
+
 let username = "";
 let emotion = "";
 
-/* ===== JOIN ===== */
+/* JOIN */
 function join() {
     username = document.getElementById("username").value;
     emotion = document.getElementById("emotion").value;
@@ -187,18 +155,18 @@ function join() {
     document.getElementById("chat").style.display="block";
 }
 
-/* ===== SEND ===== */
+/* SEND */
 function send() {
     let m = document.getElementById("msg").value;
     if(!m) return;
 
     socket.emit("message",{message:m});
-    add(username, m, true);
 
+    add(username,m,true);
     document.getElementById("msg").value="";
 }
 
-/* ===== UI MSG ===== */
+/* ADD MSG */
 function add(user,msg,me=false){
     let div=document.createElement("div");
     div.className="msg";
@@ -206,28 +174,18 @@ function add(user,msg,me=false){
     document.getElementById("messages").appendChild(div);
 }
 
-/* ===== STATUS ===== */
-socket.on("status", (t)=>{
+/* SOCKET EVENTS */
+socket.on("status", t=>{
     document.getElementById("status").innerText=t;
 });
 
-/* ===== MSG ===== */
-socket.on("message",(d)=>{
+socket.on("message", d=>{
     add(d.from, d.message);
 });
 
-/* ===== COUNT ===== */
-socket.on("count",(n)=>{
+socket.on("count", n=>{
     document.getElementById("counter").innerText=n+" connectés";
 });
-
-/* ===== SETTINGS ===== */
-function openSettings(){
-    document.getElementById("settings").style.display="flex";
-}
-function closeSettings(){
-    document.getElementById("settings").style.display="none";
-}
 
 </script>
 
