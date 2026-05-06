@@ -11,8 +11,7 @@ app.config["SECRET_KEY"] = "secret"
 
 socketio = SocketIO(
     app,
-    cors_allowed_origins="*",
-    async_mode="eventlet"
+    cors_allowed_origins="*"
 )
 
 connected = set()
