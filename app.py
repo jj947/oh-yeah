@@ -1,6 +1,3 @@
-import eventlet
-eventlet.monkey_patch()
-
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 from collections import deque
@@ -9,8 +6,6 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret"
 
 socketio = SocketIO(app, cors_allowed_origins="*")
-
-# ... ton code normal ...
 
 connected = set()
 waiting = {}
