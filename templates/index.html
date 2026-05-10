@@ -17,9 +17,7 @@
     --card: rgba(255,255,255,0.05);
     --border: rgba(255,255,255,0.08);
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
     min-height: 100vh;
     display: flex;
@@ -33,300 +31,155 @@ body {
     color: white;
     padding: 20px;
 }
-
 h1, h2, h3 { font-family: 'Syne', sans-serif; }
-
-/* TOP BAR */
 .topbar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
     padding: 12px 20px;
     background: rgba(10,10,18,0.8);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     z-index: 100;
 }
-
 .topbar-left { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
 .topbar-right { display: flex; align-items: center; gap: 12px; font-size: 14px; }
-
 .coins-badge {
     background: rgba(245,158,11,0.15);
     border: 1px solid rgba(245,158,11,0.3);
     color: var(--gold);
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 14px;
+    padding: 5px 12px; border-radius: 20px;
+    font-weight: 700; font-size: 14px;
 }
-
 .premium-badge {
     background: linear-gradient(135deg, #f59e0b, #ef4444);
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 12px;
+    padding: 5px 12px; border-radius: 20px;
+    font-weight: 700; font-size: 12px;
 }
-
-/* CARD */
 .card {
-    width: 100%;
-    max-width: 420px;
+    width: 100%; max-width: 420px;
     background: var(--card);
     border: 1px solid var(--border);
-    padding: 28px 24px;
-    border-radius: 20px;
+    padding: 28px 24px; border-radius: 20px;
     backdrop-filter: blur(10px);
     margin-top: 60px;
 }
-
-/* TABS */
 .tabs {
-    display: flex;
-    background: rgba(0,0,0,0.3);
-    border-radius: 12px;
-    padding: 4px;
-    margin-bottom: 24px;
+    display: flex; background: rgba(0,0,0,0.3);
+    border-radius: 12px; padding: 4px; margin-bottom: 24px;
 }
-
 .tab {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 9px;
-    background: transparent;
-    color: rgba(255,255,255,0.5);
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    width: auto;
-    margin: 0;
+    flex: 1; padding: 10px; border: none; border-radius: 9px;
+    background: transparent; color: rgba(255,255,255,0.5);
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px;
+    cursor: pointer; transition: all 0.2s; width: auto; margin: 0;
 }
-
-.tab.active {
-    background: linear-gradient(135deg, var(--blue), var(--purple));
-    color: white;
-}
-
-/* INPUTS */
+.tab.active { background: linear-gradient(135deg, var(--blue), var(--purple)); color: white; }
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: 13px; opacity: 0.6; margin-bottom: 6px; }
-
 input, select {
-    width: 100%;
-    padding: 13px 16px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: rgba(0,0,0,0.3);
-    color: white;
-    font-size: 15px;
-    font-family: 'DM Sans', sans-serif;
-    margin: 0;
-    transition: border-color 0.2s;
+    width: 100%; padding: 13px 16px;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: rgba(0,0,0,0.3); color: white;
+    font-size: 15px; font-family: 'DM Sans', sans-serif;
+    margin: 0; transition: border-color 0.2s;
 }
-
-input:focus, select:focus {
-    outline: none;
-    border-color: var(--blue);
-}
-
+input:focus, select:focus { outline: none; border-color: var(--blue); }
 select option { background: #1a1a2e; }
-
-/* BUTTONS */
 .btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 14px;
+    width: 100%; padding: 14px; border: none; border-radius: 14px;
     background: linear-gradient(135deg, var(--blue), var(--purple));
-    color: white;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 8px;
+    color: white; font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 16px; cursor: pointer; margin-top: 8px;
     transition: opacity 0.2s, transform 0.1s;
 }
-
 .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 .btn:active { transform: translateY(0); }
-
-.btn-outline {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: rgba(255,255,255,0.7);
-    font-size: 14px;
-    margin-top: 6px;
-}
-
-.btn-danger {
-    background: rgba(239,68,68,0.15);
-    border: 1px solid rgba(239,68,68,0.3);
-    color: var(--red);
-}
-
-.btn-gold {
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
-}
-
-.btn-green {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-}
-
-.btn-sm {
-    width: auto;
-    padding: 8px 16px;
-    font-size: 13px;
-    margin-top: 0;
-    border-radius: 10px;
-}
-
-/* ERROR */
+.btn-outline { background: transparent; border: 1px solid var(--border); color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 6px; }
+.btn-danger { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: var(--red); }
+.btn-gold { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+.btn-sm { width: auto; padding: 8px 16px; font-size: 13px; margin-top: 0; border-radius: 10px; }
 .error-msg {
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.3);
-    color: #fca5a5;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-size: 14px;
-    margin-top: 10px;
-    display: none;
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5; padding: 10px 14px; border-radius: 10px;
+    font-size: 14px; margin-top: 10px; display: none;
 }
-
-/* CHAT */
 #chat { display: none; }
-
 #messages {
-    height: 280px;
-    overflow-y: auto;
-    background: rgba(0,0,0,0.3);
-    padding: 12px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    margin: 12px 0;
-    scroll-behavior: smooth;
+    height: 280px; overflow-y: auto;
+    background: rgba(0,0,0,0.3); padding: 12px;
+    border-radius: 12px; border: 1px solid var(--border);
+    margin: 12px 0; scroll-behavior: smooth;
 }
-
 .msg { margin: 6px 0; font-size: 14px; line-height: 1.5; }
 .msg .sender { font-weight: 700; }
 .msg.me .sender { color: var(--green); }
 .msg.them .sender { color: var(--blue); }
-
-.status-msg {
-    text-align: center;
-    opacity: 0.6;
-    font-style: italic;
-    font-size: 13px;
-    padding: 6px 0;
-}
-
 @keyframes pulse { 0%,100% { opacity:0.4; } 50% { opacity:1; } }
 .waiting-anim { animation: pulse 1.5s infinite; text-align: center; padding: 8px 0; font-size: 14px; }
-
-#status-bar {
-    text-align: center;
-    padding: 8px;
-    font-size: 14px;
-    opacity: 0.8;
-    font-style: italic;
-}
-
-.chat-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.msg-input-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
+#status-bar { text-align: center; padding: 8px; font-size: 14px; opacity: 0.8; font-style: italic; }
+.chat-actions { display: flex; gap: 8px; margin-top: 8px; }
+.msg-input-row { display: flex; gap: 8px; align-items: center; }
 .msg-input-row input { margin: 0; flex: 1; }
 .msg-input-row button { width: auto; margin: 0; padding: 13px 18px; border-radius: 12px; }
-
-/* COST HINTS */
-.cost-hint {
-    font-size: 12px;
-    opacity: 0.5;
-    text-align: right;
-    margin-top: 4px;
-}
-
-/* PROFILE PANEL */
+.cost-hint { font-size: 12px; opacity: 0.5; text-align: right; margin-top: 4px; }
 #profile { display: none; }
-.profile-info {
-    background: rgba(0,0,0,0.2);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 14px;
-}
+.profile-info { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
 .profile-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 14px; border-bottom: 1px solid var(--border); }
 .profile-row:last-child { border-bottom: none; }
 .profile-row .label { opacity: 0.6; }
-
-/* SHOP */
 #shop { display: none; }
 .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
-.shop-item {
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s;
-}
+.shop-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; cursor: pointer; transition: border-color 0.2s; }
 .shop-item:hover { border-color: var(--gold); }
 .shop-item .amount { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--gold); }
 .shop-item .price { font-size: 13px; opacity: 0.7; margin-top: 4px; }
 .shop-coming { text-align: center; opacity: 0.5; font-size: 13px; margin-top: 8px; font-style: italic; }
 
-/* TOAST */
+/* MODALE PUB */
+#ad-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.9); z-index: 9999;
+    justify-content: center; align-items: center;
+    flex-direction: column; gap: 16px; padding: 20px;
+}
+#ad-modal.show { display: flex; }
+.ad-modal-card {
+    background: #0f0f1a; border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px;
+    width: 100%; max-width: 400px; text-align: center;
+}
+.ad-modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; margin-bottom: 6px; }
+.ad-modal-sub { font-size: 13px; opacity: 0.5; margin-bottom: 16px; }
+.ad-container { margin: 12px 0; min-height: 120px; }
+.timer-bar-bg { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin: 14px 0 10px; overflow: hidden; }
+.timer-bar { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 3px; width: 0%; transition: width 1s linear; }
+#timer-text { font-size: 13px; opacity: 0.6; margin-bottom: 12px; }
+#claim-btn {
+    display: none; width: 100%; padding: 14px; border: none; border-radius: 14px;
+    background: linear-gradient(135deg, var(--green), #16a34a);
+    color: white; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; cursor: pointer;
+}
 .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
+    position: fixed; bottom: 24px; left: 50%;
     transform: translateX(-50%) translateY(100px);
-    background: rgba(30,30,50,0.95);
-    border: 1px solid var(--border);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 14px;
-    font-size: 14px;
-    backdrop-filter: blur(10px);
-    transition: transform 0.3s;
-    z-index: 999;
-    white-space: nowrap;
+    background: rgba(30,30,50,0.95); border: 1px solid var(--border);
+    color: white; padding: 12px 20px; border-radius: 14px; font-size: 14px;
+    backdrop-filter: blur(10px); transition: transform 0.3s;
+    z-index: 99999; white-space: nowrap;
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
-
-/* SECTIONS */
-.section-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 22px;
-    margin-bottom: 6px;
-}
+.section-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; margin-bottom: 6px; }
 .section-sub { opacity: 0.5; font-size: 13px; margin-bottom: 20px; }
-
-/* NAV BUTTONS */
-.nav-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
+.nav-row { display: flex; gap: 8px; margin-top: 10px; }
+#ad-zone { margin-top: 16px; display: none; }
+.ad-zone-inner {
+    background: rgba(245,158,11,0.08); border: 1px dashed rgba(245,158,11,0.3);
+    border-radius: 12px; padding: 14px; text-align: center;
 }
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
     <div class="topbar-left">OhYeah 💬</div>
     <div class="topbar-right">
@@ -344,51 +197,30 @@ select option { background: #1a1a2e; }
     <div id="auth">
         <div class="section-title">OhYeah 💬</div>
         <div class="section-sub">Chat anonyme par émotions</div>
-
         <div class="tabs">
             <button class="tab active" onclick="switchTab('login')">Connexion</button>
             <button class="tab" onclick="switchTab('register')">Inscription</button>
         </div>
-
-        <!-- LOGIN -->
         <div id="login-form">
-            <div class="field">
-                <label>Email</label>
-                <input id="login-email" type="email" placeholder="ton@email.com">
-            </div>
-            <div class="field">
-                <label>Mot de passe</label>
-                <input id="login-password" type="password" placeholder="••••••">
-            </div>
+            <div class="field"><label>Email</label><input id="login-email" type="email" placeholder="ton@email.com"></div>
+            <div class="field"><label>Mot de passe</label><input id="login-password" type="password" placeholder="••••••"></div>
             <div class="error-msg" id="login-error"></div>
             <button class="btn" onclick="login()">Se connecter</button>
         </div>
-
-        <!-- REGISTER -->
         <div id="register-form" style="display:none;">
-            <div class="field">
-                <label>Email</label>
-                <input id="reg-email" type="email" placeholder="ton@email.com">
-            </div>
-            <div class="field">
-                <label>Pseudo</label>
-                <input id="reg-username" placeholder="MonPseudo">
-            </div>
-            <div class="field">
-                <label>Mot de passe</label>
-                <input id="reg-password" type="password" placeholder="6 caractères minimum">
-            </div>
+            <div class="field"><label>Email</label><input id="reg-email" type="email" placeholder="ton@email.com"></div>
+            <div class="field"><label>Pseudo</label><input id="reg-username" placeholder="MonPseudo"></div>
+            <div class="field"><label>Mot de passe</label><input id="reg-password" type="password" placeholder="6 caractères minimum"></div>
             <div class="error-msg" id="register-error"></div>
             <button class="btn" onclick="register()">Créer mon compte</button>
             <p style="text-align:center; font-size:12px; opacity:0.4; margin-top:12px;">🎁 200 pièces offertes à l'inscription !</p>
         </div>
     </div>
 
-    <!-- MENU CHAT -->
+    <!-- MENU -->
     <div id="menu" style="display:none;">
         <div class="section-title">Prêt à chatter ? 🚀</div>
         <div class="section-sub">Choisis ton émotion et trouve un partenaire</div>
-
         <div class="field">
             <label>Émotion du moment</label>
             <select id="emotion">
@@ -400,20 +232,22 @@ select option { background: #1a1a2e; }
                 <option value="amour">❤️ Amour</option>
             </select>
         </div>
-
         <button class="btn" onclick="joinChat()">Trouver un partenaire</button>
-
         <div class="nav-row">
             <button class="btn btn-outline" onclick="showSection('shop')">🛒 Boutique</button>
             <button class="btn btn-outline" onclick="showSection('profile')">👤 Profil</button>
         </div>
-
-        <!-- PUB simulée (pour les non-premium) -->
-        <div id="ad-zone" style="margin-top:16px; display:none;">
-            <div style="background:rgba(245,158,11,0.08); border:1px dashed rgba(245,158,11,0.3); border-radius:12px; padding:14px; text-align:center;">
-                <div style="font-size:12px; opacity:0.5; margin-bottom:8px;">PUBLICITÉ</div>
-                <div style="font-size:13px; opacity:0.7; margin-bottom:10px;">Regarde une pub et gagne 20 🪙</div>
-                <button class="btn btn-gold btn-sm" style="width:auto; margin:0 auto;" onclick="watchAd()">▶ Regarder (+20 🪙)</button>
+        <div id="ad-zone">
+            <div class="ad-zone-inner">
+                <div style="font-size:12px; opacity:0.5; margin-bottom:6px;">PUBLICITÉ</div>
+                <!-- BEGIN AADS AD UNIT 2437251 -->
+                <div style="width:100%; margin:auto;">
+                    <iframe data-aa='2437251' src='//acceptable.a-ads.com/2437251/?size=Adaptive'
+                        style='border:0; padding:0; width:100%; height:auto; overflow:hidden; display:block; margin:auto;'></iframe>
+                </div>
+                <!-- END AADS AD UNIT 2437251 -->
+                <div style="font-size:13px; opacity:0.7; margin:10px 0 8px;">Regarde une pub et gagne 20 🪙</div>
+                <button class="btn btn-gold btn-sm" style="width:auto; margin:0 auto;" onclick="openAdModal()">▶ Regarder (+20 🪙)</button>
             </div>
         </div>
     </div>
@@ -426,7 +260,7 @@ select option { background: #1a1a2e; }
             <input id="msg" placeholder="Ton message..." onkeydown="if(event.key==='Enter') send()">
             <button class="btn" onclick="send()" style="width:auto; padding:13px 16px;">➤</button>
         </div>
-        <div class="cost-hint" id="msg-cost-hint">1 🪙 par message</div>
+        <div class="cost-hint">1 🪙 par message</div>
         <div class="chat-actions">
             <button class="btn btn-outline" onclick="leaveChat()">🏠 Menu</button>
             <button class="btn btn-danger" onclick="nextPartner()">🔄 Changer (10 🪙)</button>
@@ -437,14 +271,11 @@ select option { background: #1a1a2e; }
     <div id="profile">
         <div class="section-title">Mon profil 👤</div>
         <div class="section-sub">Gère ton compte</div>
-
         <div class="profile-info">
             <div class="profile-row"><span class="label">Pseudo</span><span id="p-username">—</span></div>
-            <div class="profile-row"><span class="label">Email</span><span id="p-email" style="font-size:12px; opacity:0.6;">—</span></div>
             <div class="profile-row"><span class="label">Pièces</span><span id="p-coins" style="color:var(--gold);">—</span></div>
             <div class="profile-row"><span class="label">Abonnement</span><span id="p-premium">Gratuit</span></div>
         </div>
-
         <div class="field">
             <label>Changer de pseudo (1 fois / 30 jours)</label>
             <input id="new-username" placeholder="Nouveau pseudo">
@@ -458,62 +289,57 @@ select option { background: #1a1a2e; }
     <div id="shop">
         <div class="section-title">Boutique 🛒</div>
         <div class="section-sub">Achète des pièces ou passe Premium</div>
-
         <div class="shop-grid">
-            <div class="shop-item" onclick="buyCoins(500, '1,99€')">
-                <div class="amount">🪙 500</div>
-                <div class="price">1,99 €</div>
-            </div>
-            <div class="shop-item" onclick="buyCoins(1200, '3,99€')">
-                <div class="amount">🪙 1 200</div>
-                <div class="price">3,99 €</div>
-            </div>
-            <div class="shop-item" onclick="buyCoins(3000, '7,99€')">
-                <div class="amount">🪙 3 000</div>
-                <div class="price">7,99 €</div>
-            </div>
-            <div class="shop-item" onclick="buyCoins(8000, '14,99€')">
-                <div class="amount">🪙 8 000</div>
-                <div class="price">14,99 €</div>
-            </div>
+            <div class="shop-item" onclick="buyCoins(500,'1,99€')"><div class="amount">🪙 500</div><div class="price">1,99 €</div></div>
+            <div class="shop-item" onclick="buyCoins(1200,'3,99€')"><div class="amount">🪙 1 200</div><div class="price">3,99 €</div></div>
+            <div class="shop-item" onclick="buyCoins(3000,'7,99€')"><div class="amount">🪙 3 000</div><div class="price">7,99 €</div></div>
+            <div class="shop-item" onclick="buyCoins(8000,'14,99€')"><div class="amount">🪙 8 000</div><div class="price">14,99 €</div></div>
         </div>
         <div class="shop-coming">💳 Paiement bientôt disponible</div>
-
-        <div style="margin-top:20px; background:linear-gradient(135deg, rgba(245,158,11,0.1), rgba(239,68,68,0.1)); border:1px solid rgba(245,158,11,0.3); border-radius:14px; padding:16px; text-align:center;">
+        <div style="margin-top:20px; background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(239,68,68,0.1)); border:1px solid rgba(245,158,11,0.3); border-radius:14px; padding:16px; text-align:center;">
             <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:16px; margin-bottom:6px;">⭐ Premium</div>
             <div style="font-size:13px; opacity:0.7; margin-bottom:12px;">Pièces illimitées · Zéro publicité · Badge exclusif</div>
             <div style="font-size:22px; font-weight:800; color:var(--gold); margin-bottom:12px;">4,99€ / mois</div>
             <button class="btn btn-gold" onclick="buyPremium()" style="margin:0;">Passer Premium</button>
             <div class="shop-coming" style="margin-top:8px;">Bientôt disponible</div>
         </div>
-
         <button class="btn btn-outline" onclick="showSection('menu')" style="margin-top:14px;">← Retour</button>
     </div>
 
 </div>
 
-<!-- TOAST -->
+<!-- MODALE PUB -->
+<div id="ad-modal">
+    <div class="ad-modal-card">
+        <div class="ad-modal-title">📺 Publicité</div>
+        <div class="ad-modal-sub">Regarde pendant 30 secondes pour gagner 20 🪙</div>
+        <div class="ad-container">
+            <!-- BEGIN AADS AD UNIT 2437251 -->
+            <div style="width:100%; margin:auto;">
+                <iframe data-aa='2437251' src='//acceptable.a-ads.com/2437251/?size=Adaptive'
+                    style='border:0; padding:0; width:100%; height:auto; overflow:hidden; display:block; margin:auto; min-height:150px;'></iframe>
+            </div>
+            <!-- END AADS AD UNIT 2437251 -->
+        </div>
+        <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar"></div></div>
+        <div id="timer-text">⏳ Encore <span id="countdown">30</span> secondes...</div>
+        <button id="claim-btn" onclick="claimAdReward()">🎉 Réclamer mes 20 🪙 !</button>
+    </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== STATE =====
 let currentUser = null;
 let socket = null;
+let adTimer = null;
 
-// ===== INIT =====
 async function init() {
     try {
         const res = await fetch("/api/me");
-        if (res.ok) {
-            const user = await res.json();
-            setUser(user);
-            showSection("menu");
-        } else {
-            showSection("auth");
-        }
-    } catch {
-        showSection("auth");
-    }
+        if (res.ok) { setUser(await res.json()); showSection("menu"); }
+        else showSection("auth");
+    } catch { showSection("auth"); }
     initSocket();
 }
 
@@ -523,57 +349,42 @@ function setUser(user) {
     document.getElementById("coins-display").textContent = "🪙 " + user.coins;
     document.getElementById("profile-btn").style.display = "block";
     document.getElementById("logout-btn").style.display = "block";
-    if (user.is_premium) {
-        document.getElementById("premium-display").style.display = "block";
-    }
+    if (user.is_premium) document.getElementById("premium-display").style.display = "block";
     updateProfilePanel();
 }
 
 function updateCoins(coins) {
-    if (currentUser) {
-        currentUser.coins = coins;
-        document.getElementById("coins-display").textContent = "🪙 " + coins;
-        document.getElementById("p-coins").textContent = "🪙 " + coins;
-    }
+    if (!currentUser) return;
+    currentUser.coins = coins;
+    document.getElementById("coins-display").textContent = "🪙 " + coins;
+    document.getElementById("p-coins").textContent = "🪙 " + coins;
 }
 
-// ===== SECTIONS =====
 const sections = ["auth", "menu", "chat", "profile", "shop"];
-
 function showSection(name) {
     sections.forEach(s => document.getElementById(s).style.display = "none");
     document.getElementById(name).style.display = "block";
-    if (name === "menu" && currentUser && !currentUser.is_premium) {
-        document.getElementById("ad-zone").style.display = "block";
-    }
+    document.getElementById("ad-zone").style.display =
+        (name === "menu" && currentUser && !currentUser.is_premium) ? "block" : "none";
 }
 
-// ===== TABS =====
 function switchTab(tab) {
     document.querySelectorAll(".tab").forEach((t, i) => {
-        t.classList.toggle("active", (i === 0 && tab === "login") || (i === 1 && tab === "register"));
+        t.classList.toggle("active", (i===0&&tab==="login")||(i===1&&tab==="register"));
     });
-    document.getElementById("login-form").style.display = tab === "login" ? "block" : "none";
-    document.getElementById("register-form").style.display = tab === "register" ? "block" : "none";
+    document.getElementById("login-form").style.display = tab==="login" ? "block" : "none";
+    document.getElementById("register-form").style.display = tab==="register" ? "block" : "none";
 }
 
-// ===== AUTH =====
 async function login() {
     const email = document.getElementById("login-email").value.trim();
     const password = document.getElementById("login-password").value;
     const err = document.getElementById("login-error");
     err.style.display = "none";
-
-    const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-    });
+    const res = await fetch("/api/login", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({email, password})});
     const data = await res.json();
     if (!res.ok) { err.textContent = data.error; err.style.display = "block"; return; }
-    setUser(data.user);
-    showSection("menu");
-    toast("Bienvenue " + data.user.username + " ! 👋");
+    setUser(data.user); showSection("menu"); toast("Bienvenue " + data.user.username + " ! 👋");
 }
 
 async function register() {
@@ -582,31 +393,20 @@ async function register() {
     const password = document.getElementById("reg-password").value;
     const err = document.getElementById("register-error");
     err.style.display = "none";
-
-    const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, username, password })
-    });
+    const res = await fetch("/api/register", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({email, username, password})});
     const data = await res.json();
     if (!res.ok) { err.textContent = data.error; err.style.display = "block"; return; }
-    setUser(data.user);
-    showSection("menu");
-    toast("🎁 Compte créé ! 200 pièces offertes !");
+    setUser(data.user); showSection("menu"); toast("🎁 Compte créé ! 200 pièces offertes !");
 }
 
 async function logout() {
-    await fetch("/api/logout", { method: "POST" });
+    await fetch("/api/logout", {method:"POST"});
     currentUser = null;
-    document.getElementById("coins-display").style.display = "none";
-    document.getElementById("premium-display").style.display = "none";
-    document.getElementById("profile-btn").style.display = "none";
-    document.getElementById("logout-btn").style.display = "none";
+    ["coins-display","premium-display","profile-btn","logout-btn"].forEach(id => document.getElementById(id).style.display = "none");
     if (socket) socket.disconnect();
     showSection("auth");
 }
 
-// ===== PROFIL =====
 function updateProfilePanel() {
     if (!currentUser) return;
     document.getElementById("p-username").textContent = currentUser.username;
@@ -618,12 +418,7 @@ async function changeUsername() {
     const newUsername = document.getElementById("new-username").value.trim();
     const err = document.getElementById("username-error");
     err.style.display = "none";
-
-    const res = await fetch("/api/change_username", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: newUsername })
-    });
+    const res = await fetch("/api/change_username", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({username: newUsername})});
     const data = await res.json();
     if (!res.ok) { err.textContent = data.error; err.style.display = "block"; return; }
     currentUser.username = data.username;
@@ -631,63 +426,61 @@ async function changeUsername() {
     toast("✅ Pseudo changé en " + data.username);
 }
 
-// ===== BOUTIQUE =====
-function buyCoins(amount, price) {
-    toast("💳 Paiement bientôt disponible ! (" + amount + " 🪙 pour " + price + ")");
+function buyCoins(amount, price) { toast("💳 Paiement bientôt disponible ! (" + amount + " 🪙 pour " + price + ")"); }
+function buyPremium() { toast("⭐ Abonnement Premium bientôt disponible !"); }
+
+// MODALE PUB avec timer 30 secondes
+function openAdModal() {
+    const modal = document.getElementById("ad-modal");
+    const bar = document.getElementById("timer-bar");
+    const countdown = document.getElementById("countdown");
+    const claimBtn = document.getElementById("claim-btn");
+    modal.classList.add("show");
+    bar.style.width = "0%";
+    countdown.textContent = "30";
+    claimBtn.style.display = "none";
+    document.getElementById("timer-text").style.display = "block";
+    let seconds = 0;
+    if (adTimer) clearInterval(adTimer);
+    adTimer = setInterval(() => {
+        seconds++;
+        bar.style.width = (seconds / 30 * 100) + "%";
+        countdown.textContent = 30 - seconds;
+        if (seconds >= 30) {
+            clearInterval(adTimer);
+            document.getElementById("timer-text").style.display = "none";
+            claimBtn.style.display = "block";
+        }
+    }, 1000);
 }
 
-function buyPremium() {
-    toast("⭐ Abonnement Premium bientôt disponible !");
-}
-
-async function watchAd() {
-    const res = await fetch("/api/watch_ad", { method: "POST" });
+async function claimAdReward() {
+    const res = await fetch("/api/watch_ad", {method:"POST"});
     const data = await res.json();
-    if (res.ok) {
-        updateCoins(data.coins);
-        toast("🎉 +20 🪙 gagnées !");
-    }
+    if (res.ok) { updateCoins(data.coins); toast("🎉 +20 🪙 gagnées !"); }
+    document.getElementById("ad-modal").classList.remove("show");
 }
 
-// ===== SOCKET =====
 function initSocket() {
-    socket = io(window.location.origin, { transports: ["websocket", "polling"] });
-
+    socket = io(window.location.origin, {transports: ["websocket", "polling"]});
     socket.on("status", t => {
         const bar = document.getElementById("status-bar");
         bar.textContent = t;
         bar.className = t.includes("attente") ? "waiting-anim" : "";
     });
-
-    socket.on("message", d => {
-        addMessage(d.from, d.message, false, d.emotion);
-    });
-
-    socket.on("count", n => {
-        document.getElementById("counter").textContent = n + " connectés";
-    });
-
-    socket.on("coins_update", d => {
-        updateCoins(d.coins);
-    });
-
-    socket.on("no_coins", () => {
-        toast("❌ Plus assez de pièces ! Regarde une pub ou achète des pièces 🛒");
-    });
+    socket.on("message", d => addMessage(d.from, d.message, false, d.emotion));
+    socket.on("count", n => document.getElementById("counter").textContent = n + " connectés");
+    socket.on("coins_update", d => updateCoins(d.coins));
+    socket.on("no_coins", () => toast("❌ Plus assez de pièces ! Regarde une pub ou achète des pièces 🛒"));
+    // BUG FIX : notification quand le partenaire quitte
+    socket.on("partner_left", () => addSystemMessage("⚠️ Votre partenaire a quitté la discussion."));
 }
 
-// ===== CHAT =====
 function joinChat() {
     const emotion = document.getElementById("emotion").value;
     if (!emotion) return toast("Choisis une émotion !");
     if (!currentUser) return;
-
-    socket.emit("join", {
-        username: currentUser.username,
-        emotion: emotion,
-        user_id: currentUser.id
-    });
-
+    socket.emit("join", {username: currentUser.username, emotion, user_id: currentUser.id});
     document.getElementById("messages").innerHTML = "";
     showSection("chat");
 }
@@ -695,16 +488,25 @@ function joinChat() {
 function send() {
     const m = document.getElementById("msg").value.trim();
     if (!m) return;
-    socket.emit("message", { message: m });
+    socket.emit("message", {message: m});
     addMessage(currentUser.username, m, true, "");
     document.getElementById("msg").value = "";
 }
 
-function addMessage(user, msg, me = false, emotion = "") {
+function addMessage(user, msg, me=false, emotion="") {
     const div = document.createElement("div");
     div.className = "msg " + (me ? "me" : "them");
     const emo = emotion ? ` (${emotion})` : "";
     div.innerHTML = `<span class="sender">${user}${emo}</span> : ${msg}`;
+    const box = document.getElementById("messages");
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+function addSystemMessage(text) {
+    const div = document.createElement("div");
+    div.style.cssText = "text-align:center; opacity:0.5; font-style:italic; font-size:13px; padding:6px 0;";
+    div.textContent = text;
     const box = document.getElementById("messages");
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
@@ -715,12 +517,12 @@ function nextPartner() {
     document.getElementById("messages").innerHTML = "";
 }
 
+// BUG FIX : on prévient le serveur qu'on quitte une conversation active
 function leaveChat() {
-    socket.emit("leave_queue");
+    socket.emit("leave_chat");
     showSection("menu");
 }
 
-// ===== TOAST =====
 function toast(msg) {
     const t = document.getElementById("toast");
     t.textContent = msg;
@@ -728,7 +530,6 @@ function toast(msg) {
     setTimeout(() => t.classList.remove("show"), 3000);
 }
 
-// ===== START =====
 init();
 </script>
 </body>
