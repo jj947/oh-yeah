@@ -4,269 +4,732 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="UTF-8">
 <title>OhYeah Chat</title>
-
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
+:root {
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --green: #22c55e;
+    --red: #ef4444;
+    --gold: #f59e0b;
+    --bg: #0a0a12;
+    --card: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.08);
+}
 
-body{
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    margin: 0;
-    padding: 20px;
-
+body {
     min-height: 100vh;
-
     display: flex;
     justify-content: center;
     align-items: center;
-
-    font-family: Arial, sans-serif;
-
+    font-family: 'DM Sans', sans-serif;
     background:
-    radial-gradient(circle at top left,#3b82f6 0%,transparent 30%),
-    radial-gradient(circle at bottom right,#8b5cf6 0%,transparent 30%),
-    linear-gradient(135deg,#0f172a,#111827,#1e293b);
-
-    overflow: hidden;
-
+        radial-gradient(circle at 20% 20%, rgba(59,130,246,0.15) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(139,92,246,0.15) 0%, transparent 40%),
+        var(--bg);
     color: white;
+    padding: 20px;
 }
+
+h1, h2, h3 { font-family: 'Syne', sans-serif; }
 
 /* TOP BAR */
-.top {
-    position:fixed;
-    top:0;
-    width:100%;
-    display:flex;
-    justify-content:space-between;
-    padding:10px 20px;
-    background:rgba(0,0,0,0.4);
-    backdrop-filter: blur(10px);
-}
-.menu-btn{
-    position: absolute;
-    top: 30px;
-    left: 15px;
-
-    background: #222;
-    color: white;
-
-    border: none;
-    border-radius: 10px;
-
-    padding: 10px 15px;
-
-    font-size: 16px;
-    cursor: pointer;
-
-    z-index: 1000;
+.topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: rgba(10,10,18,0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
 }
 
-.menu-btn:hover{
-    background: #444;
+.topbar-left { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+
+.coins-badge {
+    background: rgba(245,158,11,0.15);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: var(--gold);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 14px;
 }
+
+.premium-badge {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+/* CARD */
 .card {
-    width:380px;
-    background:rgba(255,255,255,0.05);
-    padding:20px;
-    border-radius:15px;
+    width: 100%;
+    max-width: 420px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 28px 24px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    margin-top: 60px;
 }
 
-/* INPUT */
-input, select, button{
-
-    width: 100%;
-
-    padding: 14px;
-
-    margin-top: 12px;
-
-    border: none;
+/* TABS */
+.tabs {
+    display: flex;
+    background: rgba(0,0,0,0.3);
     border-radius: 12px;
-
-    font-size: 16px;
-
-    box-sizing: border-box;
+    padding: 4px;
+    margin-bottom: 24px;
 }
 
-button{
+.tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: auto;
+    margin: 0;
+}
 
+.tab.active {
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    color: white;
+}
+
+/* INPUTS */
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; opacity: 0.6; margin-bottom: 6px; }
+
+input, select {
     width: 100%;
+    padding: 13px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(0,0,0,0.3);
+    color: white;
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    margin: 0;
+    transition: border-color 0.2s;
+}
 
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--blue);
+}
+
+select option { background: #1a1a2e; }
+
+/* BUTTONS */
+.btn {
+    width: 100%;
     padding: 14px;
-
-    margin-top: 18px;
-
     border: none;
     border-radius: 14px;
-
-    background: linear-gradient(135deg,#3b82f6,#8b5cf6);
-
+    background: linear-gradient(135deg, var(--blue), var(--purple));
     color: white;
-
-    font-size: 17px;
-    font-weight: bold;
-
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
     cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.2s, transform 0.1s;
+}
 
+.btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    margin-top: 6px;
+}
+
+.btn-danger {
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: var(--red);
+}
+
+.btn-gold {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+
+.btn-green {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.btn-sm {
+    width: auto;
+    padding: 8px 16px;
+    font-size: 13px;
+    margin-top: 0;
+    border-radius: 10px;
+}
+
+/* ERROR */
+.error-msg {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
 }
 
 /* CHAT */
-#chat { display:none; }
+#chat { display: none; }
 
 #messages {
-    height:260px;
-    overflow-y:auto;
-    background:rgba(0,0,0,0.3);
-    padding:10px;
-    border-radius:10px;
+    height: 280px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.3);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin: 12px 0;
+    scroll-behavior: smooth;
 }
 
-.msg { margin:5px 0; }
+.msg { margin: 6px 0; font-size: 14px; line-height: 1.5; }
+.msg .sender { font-weight: 700; }
+.msg.me .sender { color: var(--green); }
+.msg.them .sender { color: var(--blue); }
 
-.me { color:#22c55e; }
-
-.status {
-    text-align:center;
-    opacity:0.8;
-    font-style:italic;
+.status-msg {
+    text-align: center;
+    opacity: 0.6;
+    font-style: italic;
+    font-size: 13px;
+    padding: 6px 0;
 }
 
-.badge {
-    font-size:12px;
-    opacity:0.7;
+@keyframes pulse { 0%,100% { opacity:0.4; } 50% { opacity:1; } }
+.waiting-anim { animation: pulse 1.5s infinite; text-align: center; padding: 8px 0; font-size: 14px; }
+
+#status-bar {
+    text-align: center;
+    padding: 8px;
+    font-size: 14px;
+    opacity: 0.8;
+    font-style: italic;
 }
 
-/* animation */
-@keyframes pulse {
-    0% { opacity:0.5; }
-    50% { opacity:1; }
-    100% { opacity:0.5; }
+.chat-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
 }
 
-.waiting {
-    animation: pulse 1.5s infinite;
-    text-align:center;
+.msg-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
+.msg-input-row input { margin: 0; flex: 1; }
+.msg-input-row button { width: auto; margin: 0; padding: 13px 18px; border-radius: 12px; }
+
+/* COST HINTS */
+.cost-hint {
+    font-size: 12px;
+    opacity: 0.5;
+    text-align: right;
+    margin-top: 4px;
+}
+
+/* PROFILE PANEL */
+#profile { display: none; }
+.profile-info {
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+}
+.profile-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 14px; border-bottom: 1px solid var(--border); }
+.profile-row:last-child { border-bottom: none; }
+.profile-row .label { opacity: 0.6; }
+
+/* SHOP */
+#shop { display: none; }
+.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+.shop-item {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.shop-item:hover { border-color: var(--gold); }
+.shop-item .amount { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--gold); }
+.shop-item .price { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+.shop-coming { text-align: center; opacity: 0.5; font-size: 13px; margin-top: 8px; font-style: italic; }
+
+/* TOAST */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(30,30,50,0.95);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-size: 14px;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* SECTIONS */
+.section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+.section-sub { opacity: 0.5; font-size: 13px; margin-bottom: 20px; }
+
+/* NAV BUTTONS */
+.nav-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
 </style>
 </head>
-
 <body>
 
-<div class="top">
-    <div id="counter">0 connectés</div>
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="topbar-left">OhYeah 💬</div>
+    <div class="topbar-right">
+        <div id="counter" style="opacity:0.5; font-size:13px;">0 connectés</div>
+        <div id="coins-display" class="coins-badge" style="display:none;">🪙 200</div>
+        <div id="premium-display" class="premium-badge" style="display:none;">⭐ PREMIUM</div>
+        <button id="profile-btn" class="btn btn-outline btn-sm" style="display:none;" onclick="showSection('profile')">Mon profil</button>
+        <button id="logout-btn" class="btn btn-outline btn-sm" style="display:none;" onclick="logout()">Déconnexion</button>
+    </div>
 </div>
 
 <div class="card">
 
-<!-- MENU -->
-<div id="menu">
-    <h2>OhYeah 💬</h2>
+    <!-- AUTH -->
+    <div id="auth">
+        <div class="section-title">OhYeah 💬</div>
+        <div class="section-sub">Chat anonyme par émotions</div>
 
-    <input id="username" placeholder="Pseudo">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('login')">Connexion</button>
+            <button class="tab" onclick="switchTab('register')">Inscription</button>
+        </div>
 
-    <select id="emotion">
-        <option value="">Émotion</option>
-        <option value="heureux">😊 heureux</option>
-        <option value="triste">😢 triste</option>
-        <option value="enerve">😡 énervé</option>
-        <option value="calme">😌 calme</option>
-        <option value="amour">❤️ amour</option>
-    </select>
+        <!-- LOGIN -->
+        <div id="login-form">
+            <div class="field">
+                <label>Email</label>
+                <input id="login-email" type="email" placeholder="ton@email.com">
+            </div>
+            <div class="field">
+                <label>Mot de passe</label>
+                <input id="login-password" type="password" placeholder="••••••">
+            </div>
+            <div class="error-msg" id="login-error"></div>
+            <button class="btn" onclick="login()">Se connecter</button>
+        </div>
 
-    <button onclick="join()">Rejoindre</button>
+        <!-- REGISTER -->
+        <div id="register-form" style="display:none;">
+            <div class="field">
+                <label>Email</label>
+                <input id="reg-email" type="email" placeholder="ton@email.com">
+            </div>
+            <div class="field">
+                <label>Pseudo</label>
+                <input id="reg-username" placeholder="MonPseudo">
+            </div>
+            <div class="field">
+                <label>Mot de passe</label>
+                <input id="reg-password" type="password" placeholder="6 caractères minimum">
+            </div>
+            <div class="error-msg" id="register-error"></div>
+            <button class="btn" onclick="register()">Créer mon compte</button>
+            <p style="text-align:center; font-size:12px; opacity:0.4; margin-top:12px;">🎁 200 pièces offertes à l'inscription !</p>
+        </div>
+    </div>
+
+    <!-- MENU CHAT -->
+    <div id="menu" style="display:none;">
+        <div class="section-title">Prêt à chatter ? 🚀</div>
+        <div class="section-sub">Choisis ton émotion et trouve un partenaire</div>
+
+        <div class="field">
+            <label>Émotion du moment</label>
+            <select id="emotion">
+                <option value="">Choisir une émotion...</option>
+                <option value="heureux">😊 Heureux</option>
+                <option value="triste">😢 Triste</option>
+                <option value="enerve">😡 Énervé</option>
+                <option value="calme">😌 Calme</option>
+                <option value="amour">❤️ Amour</option>
+            </select>
+        </div>
+
+        <button class="btn" onclick="joinChat()">Trouver un partenaire</button>
+
+        <div class="nav-row">
+            <button class="btn btn-outline" onclick="showSection('shop')">🛒 Boutique</button>
+            <button class="btn btn-outline" onclick="showSection('profile')">👤 Profil</button>
+        </div>
+
+        <!-- PUB simulée (pour les non-premium) -->
+        <div id="ad-zone" style="margin-top:16px; display:none;">
+            <div style="background:rgba(245,158,11,0.08); border:1px dashed rgba(245,158,11,0.3); border-radius:12px; padding:14px; text-align:center;">
+                <div style="font-size:12px; opacity:0.5; margin-bottom:8px;">PUBLICITÉ</div>
+                <div style="font-size:13px; opacity:0.7; margin-bottom:10px;">Regarde une pub et gagne 20 🪙</div>
+                <button class="btn btn-gold btn-sm" style="width:auto; margin:0 auto;" onclick="watchAd()">▶ Regarder (+20 🪙)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHAT -->
+    <div id="chat">
+        <div id="status-bar" class="waiting-anim">⏳ en attente d'un partenaire...</div>
+        <div id="messages"></div>
+        <div class="msg-input-row">
+            <input id="msg" placeholder="Ton message..." onkeydown="if(event.key==='Enter') send()">
+            <button class="btn" onclick="send()" style="width:auto; padding:13px 16px;">➤</button>
+        </div>
+        <div class="cost-hint" id="msg-cost-hint">1 🪙 par message</div>
+        <div class="chat-actions">
+            <button class="btn btn-outline" onclick="leaveChat()">🏠 Menu</button>
+            <button class="btn btn-danger" onclick="nextPartner()">🔄 Changer (10 🪙)</button>
+        </div>
+    </div>
+
+    <!-- PROFIL -->
+    <div id="profile">
+        <div class="section-title">Mon profil 👤</div>
+        <div class="section-sub">Gère ton compte</div>
+
+        <div class="profile-info">
+            <div class="profile-row"><span class="label">Pseudo</span><span id="p-username">—</span></div>
+            <div class="profile-row"><span class="label">Email</span><span id="p-email" style="font-size:12px; opacity:0.6;">—</span></div>
+            <div class="profile-row"><span class="label">Pièces</span><span id="p-coins" style="color:var(--gold);">—</span></div>
+            <div class="profile-row"><span class="label">Abonnement</span><span id="p-premium">Gratuit</span></div>
+        </div>
+
+        <div class="field">
+            <label>Changer de pseudo (1 fois / 30 jours)</label>
+            <input id="new-username" placeholder="Nouveau pseudo">
+        </div>
+        <div class="error-msg" id="username-error"></div>
+        <button class="btn" onclick="changeUsername()">Changer le pseudo</button>
+        <button class="btn btn-outline" onclick="showSection('menu')">← Retour</button>
+    </div>
+
+    <!-- BOUTIQUE -->
+    <div id="shop">
+        <div class="section-title">Boutique 🛒</div>
+        <div class="section-sub">Achète des pièces ou passe Premium</div>
+
+        <div class="shop-grid">
+            <div class="shop-item" onclick="buyCoins(500, '1,99€')">
+                <div class="amount">🪙 500</div>
+                <div class="price">1,99 €</div>
+            </div>
+            <div class="shop-item" onclick="buyCoins(1200, '3,99€')">
+                <div class="amount">🪙 1 200</div>
+                <div class="price">3,99 €</div>
+            </div>
+            <div class="shop-item" onclick="buyCoins(3000, '7,99€')">
+                <div class="amount">🪙 3 000</div>
+                <div class="price">7,99 €</div>
+            </div>
+            <div class="shop-item" onclick="buyCoins(8000, '14,99€')">
+                <div class="amount">🪙 8 000</div>
+                <div class="price">14,99 €</div>
+            </div>
+        </div>
+        <div class="shop-coming">💳 Paiement bientôt disponible</div>
+
+        <div style="margin-top:20px; background:linear-gradient(135deg, rgba(245,158,11,0.1), rgba(239,68,68,0.1)); border:1px solid rgba(245,158,11,0.3); border-radius:14px; padding:16px; text-align:center;">
+            <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:16px; margin-bottom:6px;">⭐ Premium</div>
+            <div style="font-size:13px; opacity:0.7; margin-bottom:12px;">Pièces illimitées · Zéro publicité · Badge exclusif</div>
+            <div style="font-size:22px; font-weight:800; color:var(--gold); margin-bottom:12px;">4,99€ / mois</div>
+            <button class="btn btn-gold" onclick="buyPremium()" style="margin:0;">Passer Premium</button>
+            <div class="shop-coming" style="margin-top:8px;">Bientôt disponible</div>
+        </div>
+
+        <button class="btn btn-outline" onclick="showSection('menu')" style="margin-top:14px;">← Retour</button>
+    </div>
+
 </div>
 
-<!-- CHAT -->
-<div id="chat">
-
-    <div id="status" class="waiting">en attente d'un partenaire...</div>
-    
-    <div id="messages"></div>
-    
-    <input id="msg" placeholder="message...">
-    <button onclick="send()">envoyer</button>
-    <button class="menu-btn" onclick="leaveChat()">
-    🏠 Retour au menu
-    </button>
-    <button onclick="nextPartner()">
-    🔄 Changer de partenaire
-    </button>
-</div>
-
-</div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
+// ===== STATE =====
+let currentUser = null;
+let socket = null;
 
-const socket = io(window.location.origin, {
-    transports: ["websocket", "polling"]
-});
-
-let username = "";
-let emotion = "";
-
-/* JOIN */
-function join() {
-    username = document.getElementById("username").value;
-    emotion = document.getElementById("emotion").value;
-
-    if(!username || !emotion) return alert("complète tout");
-
-    socket.emit("join", {username, emotion});
-
-    document.getElementById("menu").style.display="none";
-    document.getElementById("chat").style.display="block";
+// ===== INIT =====
+async function init() {
+    try {
+        const res = await fetch("/api/me");
+        if (res.ok) {
+            const user = await res.json();
+            setUser(user);
+            showSection("menu");
+        } else {
+            showSection("auth");
+        }
+    } catch {
+        showSection("auth");
+    }
+    initSocket();
 }
-function leaveChat()
-{
-    // prévenir le serveur
-    socket.emit("leave_queue");
 
-    // déconnexion socket
-    socket.disconnect();
-
-    // retour menu
-    window.location.href = "/";
+function setUser(user) {
+    currentUser = user;
+    document.getElementById("coins-display").style.display = "flex";
+    document.getElementById("coins-display").textContent = "🪙 " + user.coins;
+    document.getElementById("profile-btn").style.display = "block";
+    document.getElementById("logout-btn").style.display = "block";
+    if (user.is_premium) {
+        document.getElementById("premium-display").style.display = "block";
+    }
+    updateProfilePanel();
 }
-function nextPartner(){
-    socket.emit("next_partner");
 
-    document.getElementById("messages").innerHTML="";
+function updateCoins(coins) {
+    if (currentUser) {
+        currentUser.coins = coins;
+        document.getElementById("coins-display").textContent = "🪙 " + coins;
+        document.getElementById("p-coins").textContent = "🪙 " + coins;
+    }
 }
-/* SEND */
+
+// ===== SECTIONS =====
+const sections = ["auth", "menu", "chat", "profile", "shop"];
+
+function showSection(name) {
+    sections.forEach(s => document.getElementById(s).style.display = "none");
+    document.getElementById(name).style.display = "block";
+    if (name === "menu" && currentUser && !currentUser.is_premium) {
+        document.getElementById("ad-zone").style.display = "block";
+    }
+}
+
+// ===== TABS =====
+function switchTab(tab) {
+    document.querySelectorAll(".tab").forEach((t, i) => {
+        t.classList.toggle("active", (i === 0 && tab === "login") || (i === 1 && tab === "register"));
+    });
+    document.getElementById("login-form").style.display = tab === "login" ? "block" : "none";
+    document.getElementById("register-form").style.display = tab === "register" ? "block" : "none";
+}
+
+// ===== AUTH =====
+async function login() {
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    const err = document.getElementById("login-error");
+    err.style.display = "none";
+
+    const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error; err.style.display = "block"; return; }
+    setUser(data.user);
+    showSection("menu");
+    toast("Bienvenue " + data.user.username + " ! 👋");
+}
+
+async function register() {
+    const email = document.getElementById("reg-email").value.trim();
+    const username = document.getElementById("reg-username").value.trim();
+    const password = document.getElementById("reg-password").value;
+    const err = document.getElementById("register-error");
+    err.style.display = "none";
+
+    const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error; err.style.display = "block"; return; }
+    setUser(data.user);
+    showSection("menu");
+    toast("🎁 Compte créé ! 200 pièces offertes !");
+}
+
+async function logout() {
+    await fetch("/api/logout", { method: "POST" });
+    currentUser = null;
+    document.getElementById("coins-display").style.display = "none";
+    document.getElementById("premium-display").style.display = "none";
+    document.getElementById("profile-btn").style.display = "none";
+    document.getElementById("logout-btn").style.display = "none";
+    if (socket) socket.disconnect();
+    showSection("auth");
+}
+
+// ===== PROFIL =====
+function updateProfilePanel() {
+    if (!currentUser) return;
+    document.getElementById("p-username").textContent = currentUser.username;
+    document.getElementById("p-coins").textContent = "🪙 " + currentUser.coins;
+    document.getElementById("p-premium").textContent = currentUser.is_premium ? "⭐ Premium" : "Gratuit";
+}
+
+async function changeUsername() {
+    const newUsername = document.getElementById("new-username").value.trim();
+    const err = document.getElementById("username-error");
+    err.style.display = "none";
+
+    const res = await fetch("/api/change_username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: newUsername })
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error; err.style.display = "block"; return; }
+    currentUser.username = data.username;
+    updateProfilePanel();
+    toast("✅ Pseudo changé en " + data.username);
+}
+
+// ===== BOUTIQUE =====
+function buyCoins(amount, price) {
+    toast("💳 Paiement bientôt disponible ! (" + amount + " 🪙 pour " + price + ")");
+}
+
+function buyPremium() {
+    toast("⭐ Abonnement Premium bientôt disponible !");
+}
+
+async function watchAd() {
+    const res = await fetch("/api/watch_ad", { method: "POST" });
+    const data = await res.json();
+    if (res.ok) {
+        updateCoins(data.coins);
+        toast("🎉 +20 🪙 gagnées !");
+    }
+}
+
+// ===== SOCKET =====
+function initSocket() {
+    socket = io(window.location.origin, { transports: ["websocket", "polling"] });
+
+    socket.on("status", t => {
+        const bar = document.getElementById("status-bar");
+        bar.textContent = t;
+        bar.className = t.includes("attente") ? "waiting-anim" : "";
+    });
+
+    socket.on("message", d => {
+        addMessage(d.from, d.message, false, d.emotion);
+    });
+
+    socket.on("count", n => {
+        document.getElementById("counter").textContent = n + " connectés";
+    });
+
+    socket.on("coins_update", d => {
+        updateCoins(d.coins);
+    });
+
+    socket.on("no_coins", () => {
+        toast("❌ Plus assez de pièces ! Regarde une pub ou achète des pièces 🛒");
+    });
+}
+
+// ===== CHAT =====
+function joinChat() {
+    const emotion = document.getElementById("emotion").value;
+    if (!emotion) return toast("Choisis une émotion !");
+    if (!currentUser) return;
+
+    socket.emit("join", {
+        username: currentUser.username,
+        emotion: emotion,
+        user_id: currentUser.id
+    });
+
+    document.getElementById("messages").innerHTML = "";
+    showSection("chat");
+}
+
 function send() {
-    let m = document.getElementById("msg").value;
-    if(!m) return;
-
-    socket.emit("message",{message:m});
-
-    add(username,m,true);
-    document.getElementById("msg").value="";
+    const m = document.getElementById("msg").value.trim();
+    if (!m) return;
+    socket.emit("message", { message: m });
+    addMessage(currentUser.username, m, true, "");
+    document.getElementById("msg").value = "";
 }
 
-/* ADD MSG */
-function add(user,msg,me=false){
-    let div=document.createElement("div");
-    div.className="msg";
-    div.innerHTML=`<b class="${me?'me':''}">${user} (${emotion})</b> : ${msg}`;
-    document.getElementById("messages").appendChild(div);
+function addMessage(user, msg, me = false, emotion = "") {
+    const div = document.createElement("div");
+    div.className = "msg " + (me ? "me" : "them");
+    const emo = emotion ? ` (${emotion})` : "";
+    div.innerHTML = `<span class="sender">${user}${emo}</span> : ${msg}`;
+    const box = document.getElementById("messages");
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
 }
 
-/* SOCKET EVENTS */
-socket.on("status", t=>{
-    document.getElementById("status").innerText=t;
-});
+function nextPartner() {
+    socket.emit("next_partner");
+    document.getElementById("messages").innerHTML = "";
+}
 
-socket.on("message", d=>{
-    add(d.from, d.message);
-});
+function leaveChat() {
+    socket.emit("leave_queue");
+    showSection("menu");
+}
 
-socket.on("count", n=>{
-    document.getElementById("counter").innerText=n+" connectés";
-});
+// ===== TOAST =====
+function toast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 3000);
+}
 
+// ===== START =====
+init();
 </script>
-
 </body>
 </html>
