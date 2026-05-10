@@ -132,7 +132,15 @@ def join(data):
     )
 
     try_match(emotion)
+@socketio.on("leave_queue")
+def leave_queue():
 
+    global waiting_users
+
+    if request.sid in waiting_users:
+        waiting_users.remove(request.sid)
+
+    print("Utilisateur retiré de la file :", request.sid)
 
 # ===== MESSAGE =====
 @socketio.on("message")
