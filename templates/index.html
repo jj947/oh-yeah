@@ -30,7 +30,28 @@ body {
     background:rgba(0,0,0,0.4);
     backdrop-filter: blur(10px);
 }
+.menu-btn{
+    position: absolute;
+    top: 15px;
+    left: 15px;
 
+    background: #222;
+    color: white;
+
+    border: none;
+    border-radius: 10px;
+
+    padding: 10px 15px;
+
+    font-size: 16px;
+    cursor: pointer;
+
+    z-index: 1000;
+}
+
+.menu-btn:hover{
+    background: #444;
+}
 .card {
     width:380px;
     background:rgba(255,255,255,0.05);
@@ -124,11 +145,14 @@ button {
 <div id="chat">
 
     <div id="status" class="waiting">en attente d'un partenaire...</div>
-
+    
     <div id="messages"></div>
-
+    
     <input id="msg" placeholder="message...">
     <button onclick="send()">envoyer</button>
+    <button class="menu-btn" onclick="leaveChat()">
+    🏠 Retour au menu
+    </button>
     <button onclick="nextPartner()">
     🔄 Changer de partenaire
     </button>
@@ -156,6 +180,17 @@ function join() {
 
     document.getElementById("menu").style.display="none";
     document.getElementById("chat").style.display="block";
+}
+function leaveChat()
+{
+    // prévenir le serveur
+    socket.emit("leave_queue");
+
+    // déconnexion socket
+    socket.disconnect();
+
+    // retour menu
+    window.location.href = "/";
 }
 function nextPartner(){
     socket.emit("next_partner");
