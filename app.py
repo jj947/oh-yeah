@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, jsonify, session
 from flask_socketio import SocketIO, emit
 from collections import deque
 import os
-import sqlite3
+import psycopg2
+import psycopg2.extras
 import hashlib
 import secrets
 from datetime import datetime, timedelta
@@ -12,29 +13,33 @@ app.config["SECRET_KEY"] = secrets.token_hex(32)
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# ===== BASE DE DONNÉES =====
+# ===== BASE DE DONNÉES POSTGRESQL =====
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 def get_db():
-    db = sqlite3.connect("ohhyeah.db")
-    db.row_factory = sqlite3.Row
-    return db
+    conn = psycopg2.connect(DATABASE_URL)
+    conn.cursor_factory = psycopg2.extras.RealDictCursor
+    return conn
 
 def init_db():
-    db = get_db()
-    db.execute("""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             email TEXT UNIQUE NOT NULL,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             coins INTEGER DEFAULT 200,
             is_premium INTEGER DEFAULT 0,
             username_changed_at TEXT DEFAULT NULL,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    db.commit()
-    db.close()
+    conn.commit()
+    cur.close()
+    conn.close()
 
 init_db()
 
@@ -44,41 +49,53 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 def get_user_by_email(email):
-    db = get_db()
-    user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    db.close()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE email = %s", (email,))
+    user = cur.fetchone()
+    cur.close()
+    conn.close()
     return user
 
 def get_user_by_id(user_id):
-    db = get_db()
-    user = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
-    db.close()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cur.fetchone()
+    cur.close()
+    conn.close()
     return user
 
 def update_coins(user_id, amount):
     """amount positif = gagner, négatif = dépenser. Retourne False si pas assez de pièces."""
-    db = get_db()
-    user = db.execute("SELECT coins, is_premium FROM users WHERE id = ?", (user_id,)).fetchone()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT coins, is_premium FROM users WHERE id = %s", (user_id,))
+    user = cur.fetchone()
     if not user:
-        db.close()
+        cur.close()
+        conn.close()
         return False
     # Les premium ne dépensent pas de pièces
     if user["is_premium"] and amount < 0:
-        db.close()
+        cur.close()
+        conn.close()
         return True
     new_coins = user["coins"] + amount
     if new_coins < 0:
-        db.close()
+        cur.close()
+        conn.close()
         return False
-    db.execute("UPDATE users SET coins = ? WHERE id = ?", (new_coins, user_id))
-    db.commit()
-    db.close()
+    cur.execute("UPDATE users SET coins = %s WHERE id = %s", (new_coins, user_id))
+    conn.commit()
+    cur.close()
+    conn.close()
     return True
 
 # ===== TARIFS =====
-COST_NEXT_PARTNER = 10   # pièces pour changer de partenaire
-COST_MESSAGE = 1         # pièce par message
-REWARD_AD = 20           # pièces gagnées en regardant une pub
+COST_NEXT_PARTNER = 10
+COST_MESSAGE = 1
+REWARD_AD = 20
 
 # ===== ROUTES AUTH =====
 
@@ -100,20 +117,25 @@ def register():
     if len(password) < 6:
         return jsonify({"error": "Mot de passe trop court (6 caractères min)"}), 400
 
-    db = get_db()
-    existing = db.execute("SELECT id FROM users WHERE email = ? OR username = ?", (email, username)).fetchone()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM users WHERE email = %s OR username = %s", (email, username))
+    existing = cur.fetchone()
     if existing:
-        db.close()
+        cur.close()
+        conn.close()
         return jsonify({"error": "Email ou pseudo déjà utilisé"}), 400
 
-    db.execute(
-        "INSERT INTO users (email, username, password) VALUES (?, ?, ?)",
+    cur.execute(
+        "INSERT INTO users (email, username, password) VALUES (%s, %s, %s) RETURNING id",
         (email, username, hash_password(password))
     )
-    db.commit()
-    user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    db.close()
+    new_id = cur.fetchone()["id"]
+    conn.commit()
+    cur.close()
+    conn.close()
 
+    user = get_user_by_id(new_id)
     session["user_id"] = user["id"]
     return jsonify({
         "success": True,
@@ -177,29 +199,33 @@ def change_username():
     if len(new_username) < 3:
         return jsonify({"error": "Pseudo trop court"}), 400
 
-    db = get_db()
-    user = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cur.fetchone()
 
-    # Vérifier le délai de 30 jours
     if user["username_changed_at"]:
-        last_change = datetime.fromisoformat(user["username_changed_at"])
+        last_change = datetime.fromisoformat(str(user["username_changed_at"]))
         if datetime.now() - last_change < timedelta(days=30):
             days_left = 30 - (datetime.now() - last_change).days
-            db.close()
+            cur.close()
+            conn.close()
             return jsonify({"error": f"Tu pourras changer ton pseudo dans {days_left} jour(s)"}), 400
 
-    # Vérifier disponibilité
-    existing = db.execute("SELECT id FROM users WHERE username = ? AND id != ?", (new_username, user_id)).fetchone()
+    cur.execute("SELECT id FROM users WHERE username = %s AND id != %s", (new_username, user_id))
+    existing = cur.fetchone()
     if existing:
-        db.close()
+        cur.close()
+        conn.close()
         return jsonify({"error": "Ce pseudo est déjà pris"}), 400
 
-    db.execute(
-        "UPDATE users SET username = ?, username_changed_at = ? WHERE id = ?",
+    cur.execute(
+        "UPDATE users SET username = %s, username_changed_at = %s WHERE id = %s",
         (new_username, datetime.now().isoformat(), user_id)
     )
-    db.commit()
-    db.close()
+    conn.commit()
+    cur.close()
+    conn.close()
     return jsonify({"success": True, "username": new_username})
 
 @app.route("/api/watch_ad", methods=["POST"])
@@ -216,7 +242,7 @@ def watch_ad():
 connected = set()
 waiting = {}
 pairs = {}
-users = {}  # sid -> {username, emotion, user_id, coins}
+users = {}
 
 def try_match(emotion):
     if emotion not in waiting:
@@ -262,14 +288,12 @@ def next_partner():
     sid = request.sid
     user_id = users.get(sid, {}).get("user_id")
 
-    # Déduire les pièces
     if user_id:
         ok = update_coins(user_id, -COST_NEXT_PARTNER)
         if not ok:
             socketio.emit("status", "❌ Pas assez de pièces pour changer de partenaire !", to=sid)
             socketio.emit("no_coins", {}, to=sid)
             return
-        # Envoyer le nouveau solde
         user = get_user_by_id(user_id)
         socketio.emit("coins_update", {"coins": user["coins"]}, to=sid)
 
@@ -297,7 +321,6 @@ def message(data):
     if sid not in pairs:
         return
 
-    # Déduire le coût du message
     if user_id:
         ok = update_coins(user_id, -COST_MESSAGE)
         if not ok:
@@ -313,6 +336,22 @@ def message(data):
         "emotion": users[sid]["emotion"],
         "message": data["message"]
     }, to=partner)
+
+@socketio.on("leave_chat")
+def leave_chat():
+    sid = request.sid
+    if sid in pairs:
+        partner = pairs.pop(sid)
+        if partner in pairs:
+            pairs.pop(partner)
+            socketio.emit("partner_left", {}, to=partner)
+            emo = users[partner]["emotion"]
+            waiting.setdefault(emo, deque())
+            waiting[emo].append(partner)
+            try_match(emo)
+    for emo in waiting:
+        if sid in waiting[emo]:
+            waiting[emo].remove(sid)
 
 @socketio.on("leave_queue")
 def leave_queue():
