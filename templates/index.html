@@ -176,9 +176,42 @@ select option { background: #1a1a2e; }
     background: rgba(245,158,11,0.08); border: 1px dashed rgba(245,158,11,0.3);
     border-radius: 12px; padding: 14px; text-align: center;
 }
+
+/* PUB FOOTER — visible sans connexion pour A-ADS */
+#public-ad-footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(10,10,18,0.92);
+    border-top: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 50;
+    min-height: 60px;
+}
+#public-ad-footer .ad-label {
+    font-size: 10px;
+    opacity: 0.3;
+    writing-mode: vertical-rl;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 </style>
 </head>
 <body>
+
+<!-- PUB TOUJOURS VISIBLE (footer) — nécessaire pour validation A-ADS -->
+<div id="public-ad-footer">
+    <span class="ad-label">pub</span>
+    <!-- BEGIN AADS AD UNIT 2437251 -->
+    <div style="flex:1; max-width:600px;">
+        <iframe data-aa='2437251' src='//acceptable.a-ads.com/2437251/?size=Adaptive'
+            style='border:0; padding:0; width:100%; height:50px; overflow:hidden; display:block; margin:auto;'></iframe>
+    </div>
+    <!-- END AADS AD UNIT 2437251 -->
+</div>
 
 <div class="topbar">
     <div class="topbar-left">OhYeah 💬</div>
@@ -191,7 +224,7 @@ select option { background: #1a1a2e; }
     </div>
 </div>
 
-<div class="card">
+<div class="card" style="margin-bottom: 80px;">
 
     <!-- AUTH -->
     <div id="auth">
@@ -239,14 +272,7 @@ select option { background: #1a1a2e; }
         </div>
         <div id="ad-zone">
             <div class="ad-zone-inner">
-                <div style="font-size:12px; opacity:0.5; margin-bottom:6px;">PUBLICITÉ</div>
-                <!-- BEGIN AADS AD UNIT 2437251 -->
-                <div style="width:100%; margin:auto;">
-                    <iframe data-aa='2437251' src='//acceptable.a-ads.com/2437251/?size=Adaptive'
-                        style='border:0; padding:0; width:100%; height:auto; overflow:hidden; display:block; margin:auto;'></iframe>
-                </div>
-                <!-- END AADS AD UNIT 2437251 -->
-                <div style="font-size:13px; opacity:0.7; margin:10px 0 8px;">Regarde une pub et gagne 20 🪙</div>
+                <div style="font-size:13px; opacity:0.7; margin-bottom:8px;">Regarde une pub et gagne 20 🪙</div>
                 <button class="btn btn-gold btn-sm" style="width:auto; margin:0 auto;" onclick="openAdModal()">▶ Regarder (+20 🪙)</button>
             </div>
         </div>
@@ -341,6 +367,17 @@ async function init() {
         else showSection("auth");
     } catch { showSection("auth"); }
     initSocket();
+    // Masquer le footer pub pour les premium
+    updateAdFooter();
+}
+
+function updateAdFooter() {
+    const footer = document.getElementById("public-ad-footer");
+    if (currentUser && currentUser.is_premium) {
+        footer.style.display = "none";
+    } else {
+        footer.style.display = "flex";
+    }
 }
 
 function setUser(user) {
@@ -351,6 +388,7 @@ function setUser(user) {
     document.getElementById("logout-btn").style.display = "block";
     if (user.is_premium) document.getElementById("premium-display").style.display = "block";
     updateProfilePanel();
+    updateAdFooter();
 }
 
 function updateCoins(coins) {
@@ -404,6 +442,7 @@ async function logout() {
     currentUser = null;
     ["coins-display","premium-display","profile-btn","logout-btn"].forEach(id => document.getElementById(id).style.display = "none");
     if (socket) socket.disconnect();
+    updateAdFooter();
     showSection("auth");
 }
 
@@ -429,7 +468,6 @@ async function changeUsername() {
 function buyCoins(amount, price) { toast("💳 Paiement bientôt disponible ! (" + amount + " 🪙 pour " + price + ")"); }
 function buyPremium() { toast("⭐ Abonnement Premium bientôt disponible !"); }
 
-// MODALE PUB avec timer 30 secondes
 function openAdModal() {
     const modal = document.getElementById("ad-modal");
     const bar = document.getElementById("timer-bar");
@@ -472,7 +510,6 @@ function initSocket() {
     socket.on("count", n => document.getElementById("counter").textContent = n + " connectés");
     socket.on("coins_update", d => updateCoins(d.coins));
     socket.on("no_coins", () => toast("❌ Plus assez de pièces ! Regarde une pub ou achète des pièces 🛒"));
-    // BUG FIX : notification quand le partenaire quitte
     socket.on("partner_left", () => addSystemMessage("⚠️ Votre partenaire a quitté la discussion."));
 }
 
@@ -517,7 +554,6 @@ function nextPartner() {
     document.getElementById("messages").innerHTML = "";
 }
 
-// BUG FIX : on prévient le serveur qu'on quitte une conversation active
 function leaveChat() {
     socket.emit("leave_chat");
     showSection("menu");
