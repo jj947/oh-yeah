@@ -15,7 +15,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 # ===== BASE DE DONNÉES POSTGRESQL =====
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get("postgresql://ohhyeah_db_user:v7jCeLmDQkRz41MtDqUZYJrmr4mkizjL@dpg-d810dggsfn5c73bb0uo0-a/ohhyeah_db")
 
 def get_db():
     conn = psycopg2.connect(DATABASE_URL)
