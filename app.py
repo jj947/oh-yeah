@@ -18,7 +18,13 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 DATABASE_URL = os.environ.get("postgresql://ohhyeah_db_user:v7jCeLmDQkRz41MtDqUZYJrmr4mkizjL@dpg-d810dggsfn5c73bb0uo0-a/ohhyeah_db")
 
 def get_db():
-    conn = psycopg2.connect(DATABASE_URL)
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        raise Exception("DATABASE_URL non définie !")
+    # Render fournit parfois "postgres://" au lieu de "postgresql://"
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    conn = psycopg2.connect(url)
     conn.cursor_factory = psycopg2.extras.RealDictCursor
     return conn
 
