@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 app.config["SECRET_KEY"] = secrets.token_hex(32)
 
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 # ===== BASE DE DONNÉES POSTGRESQL =====
 
@@ -385,4 +385,4 @@ def disconnect():
 # ===== RUN =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    socketio.run(app, host="0.0.0.0", port=port, debug=False, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=port, debug=False, allow_unsafe_werkzeug=True, use_reloader=False)
