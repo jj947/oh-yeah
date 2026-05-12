@@ -242,7 +242,67 @@ def watch_ad():
     update_coins(user_id, REWARD_AD)
     user = get_user_by_id(user_id)
     return jsonify({"success": True, "coins": user["coins"]})
+# ===== ADMIN =====
+# À mettre dans ton app.py, juste avant la section SOCKET.IO
+# Définis ton mot de passe admin ici (change-le !)
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ohhyeah-admin-2024")
+ADMIN_TOKEN = secrets.token_hex(32)  # généré au démarrage du serveur
 
+@app.route("/admin")
+def admin_page():
+    return render_template("admin.html")
+
+@app.route("/api/admin/login", methods=["POST"])
+def admin_login():
+    data = request.json
+    if data.get("password") == ADMIN_PASSWORD:
+        return jsonify({"success": True, "token": ADMIN_TOKEN})
+    return jsonify({"error": "Mot de passe incorrect"}), 401
+
+def check_admin(req):
+    return req.headers.get("X-Admin-Token") == ADMIN_TOKEN
+
+@app.route("/api/admin/stats")
+def admin_stats():
+    if not check_admin(request):
+        return jsonify({"error": "Non autorisé"}), 401
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("SELECT COUNT(*) as n FROM users")
+    total_users = cur.fetchone()["n"]
+
+    cur.execute("SELECT COUNT(*) as n FROM users WHERE created_at >= NOW() - INTERVAL '1 day'")
+    today = cur.fetchone()["n"]
+
+    cur.execute("SELECT COUNT(*) as n FROM users WHERE created_at >= NOW() - INTERVAL '7 days'")
+    this_week = cur.fetchone()["n"]
+
+    cur.execute("SELECT COUNT(*) as n FROM users WHERE is_premium = 1")
+    premium = cur.fetchone()["n"]
+
+    cur.execute("SELECT COALESCE(SUM(coins), 0) as total FROM users")
+    total_coins = cur.fetchone()["total"]
+
+    cur.execute("SELECT id, username, email, coins, is_premium, created_at FROM users ORDER BY created_at DESC LIMIT 20")
+    recent_users = [dict(row) for row in cur.fetchall()]
+
+    cur.close()
+    conn.close()
+
+    # Nombre de connectés en live (depuis la mémoire du serveur)
+    live = len(connected)
+
+    return jsonify({
+        "total_users": total_users,
+        "today": today,
+        "this_week": this_week,
+        "premium": premium,
+        "total_coins": int(total_coins),
+        "live": live,
+        "recent_users": recent_users
+    })
 # ===== SOCKET.IO =====
 
 connected = set()
