@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OhYeah — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #050508;
+    --surface: #0d0d14;
+    --border: rgba(255,255,255,0.07);
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --green: #22c55e;
+    --red: #ef4444;
+    --gold: #f59e0b;
+    --text: #e2e8f0;
+    --muted: rgba(255,255,255,0.35);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    padding: 32px 20px;
+}
+
+/* LOGIN */
+.login-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+}
+.login-box h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+.login-box p { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+.login-box input {
+    width: 100%; padding: 12px 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px; color: white;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; margin-bottom: 12px;
+}
+.login-box input:focus { outline: none; border-color: var(--blue); }
+.login-box button {
+    width: 100%; padding: 12px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border: none; border-radius: 10px;
+    color: white; font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 15px; cursor: pointer;
+}
+.login-error {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5; padding: 10px; border-radius: 8px;
+    font-size: 13px; margin-top: 10px; display: none;
+}
+
+/* DASHBOARD */
+.dash { display: none; max-width: 900px; margin: 0 auto; }
+.dash-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 32px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+.dash-header h1 { font-family: 'Syne', sans-serif; font-size: 24px; }
+.dash-header span { color: var(--muted); font-size: 12px; }
+.logout-btn {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: var(--red); padding: 8px 16px;
+    border-radius: 8px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+}
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+}
+.stat-card.blue::before { background: var(--blue); }
+.stat-card.purple::before { background: var(--purple); }
+.stat-card.green::before { background: var(--green); }
+.stat-card.gold::before { background: var(--gold); }
+.stat-card.red::before { background: var(--red); }
+
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.stat-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; }
+.stat-value.blue { color: var(--blue); }
+.stat-value.purple { color: var(--purple); }
+.stat-value.green { color: var(--green); }
+.stat-value.gold { color: var(--gold); }
+.stat-value.red { color: var(--red); }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 700;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: var(--border);
+}
+
+.users-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 32px;
+}
+.users-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.users-table th {
+    padding: 12px 16px;
+    text-align: left;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+}
+.users-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.users-table tr:last-child td { border-bottom: none; }
+.users-table tr:hover td { background: rgba(255,255,255,0.02); }
+.badge {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 20px; font-size: 11px; font-weight: 700;
+}
+.badge-premium { background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
+.badge-free { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+
+.refresh-btn {
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.3);
+    color: var(--blue); padding: 8px 16px;
+    border-radius: 8px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; margin-bottom: 24px;
+}
+.refresh-btn:hover { background: rgba(59,130,246,0.2); }
+
+.live-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.empty { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+    <div class="login-box">
+        <h1>🔐 Admin</h1>
+        <p>OhYeah Dashboard</p>
+        <input type="password" id="admin-pass" placeholder="Mot de passe admin" onkeydown="if(event.key==='Enter') adminLogin()">
+        <button onclick="adminLogin()">Accéder</button>
+        <div class="login-error" id="login-err">Mot de passe incorrect</div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dash" id="dash">
+    <div class="dash-header">
+        <div>
+            <h1>📊 Dashboard Admin</h1>
+            <span id="last-refresh">—</span>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <button class="refresh-btn" onclick="loadStats()">↻ Actualiser</button>
+            <button class="logout-btn" onclick="adminLogout()">Déconnexion</button>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="stat-label">Total inscrits</div>
+            <div class="stat-value blue" id="s-total">—</div>
+            <div class="stat-sub">depuis le début</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">Inscrits aujourd'hui</div>
+            <div class="stat-value green" id="s-today">—</div>
+            <div class="stat-sub">dernières 24h</div>
+        </div>
+        <div class="stat-card purple">
+            <div class="stat-label">Inscrits cette semaine</div>
+            <div class="stat-value purple" id="s-week">—</div>
+            <div class="stat-sub">7 derniers jours</div>
+        </div>
+        <div class="stat-card gold">
+            <div class="stat-label">Membres Premium</div>
+            <div class="stat-value gold" id="s-premium">—</div>
+            <div class="stat-sub">abonnés actifs</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label"><span class="live-dot"></span>Connectés live</div>
+            <div class="stat-value green" id="s-live">—</div>
+            <div class="stat-sub">en ce moment</div>
+        </div>
+        <div class="stat-card gold">
+            <div class="stat-label">Pièces en circulation</div>
+            <div class="stat-value gold" id="s-coins">—</div>
+            <div class="stat-sub">total utilisateurs</div>
+        </div>
+    </div>
+
+    <!-- DERNIERS INSCRITS -->
+    <div class="section-title">Derniers inscrits</div>
+    <div class="users-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Pseudo</th>
+                    <th>Email</th>
+                    <th>Pièces</th>
+                    <th>Statut</th>
+                    <th>Inscrit le</th>
+                </tr>
+            </thead>
+            <tbody id="users-tbody">
+                <tr><td colspan="6" class="empty">Chargement...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+let adminToken = sessionStorage.getItem("admin_token") || null;
+
+async function adminLogin() {
+    const pass = document.getElementById("admin-pass").value;
+    const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({password: pass})
+    });
+    if (res.ok) {
+        const data = await res.json();
+        adminToken = data.token;
+        sessionStorage.setItem("admin_token", adminToken);
+        showDash();
+    } else {
+        document.getElementById("login-err").style.display = "block";
+    }
+}
+
+function adminLogout() {
+    sessionStorage.removeItem("admin_token");
+    adminToken = null;
+    document.getElementById("login-wrap").style.display = "flex";
+    document.getElementById("dash").style.display = "none";
+}
+
+function showDash() {
+    document.getElementById("login-wrap").style.display = "none";
+    document.getElementById("dash").style.display = "block";
+    loadStats();
+    setInterval(loadStats, 30000); // refresh auto toutes les 30s
+}
+
+async function loadStats() {
+    const res = await fetch("/api/admin/stats", {
+        headers: {"X-Admin-Token": adminToken}
+    });
+    if (res.status === 401) { adminLogout(); return; }
+    const d = await res.json();
+
+    document.getElementById("s-total").textContent = d.total_users;
+    document.getElementById("s-today").textContent = d.today;
+    document.getElementById("s-week").textContent = d.this_week;
+    document.getElementById("s-premium").textContent = d.premium;
+    document.getElementById("s-live").textContent = d.live;
+    document.getElementById("s-coins").textContent = d.total_coins.toLocaleString("fr-FR");
+    document.getElementById("last-refresh").textContent = "Mis à jour à " + new Date().toLocaleTimeString("fr-FR");
+
+    const tbody = document.getElementById("users-tbody");
+    if (!d.recent_users || d.recent_users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty">Aucun utilisateur</td></tr>';
+        return;
+    }
+    tbody.innerHTML = d.recent_users.map(u => `
+        <tr>
+            <td style="color:var(--muted)">#${u.id}</td>
+            <td style="font-weight:700">${u.username}</td>
+            <td style="color:var(--muted)">${u.email}</td>
+            <td style="color:var(--gold)">🪙 ${u.coins}</td>
+            <td><span class="badge ${u.is_premium ? 'badge-premium' : 'badge-free'}">${u.is_premium ? '⭐ Premium' : 'Gratuit'}</span></td>
+            <td style="color:var(--muted); font-size:12px">${new Date(u.created_at).toLocaleDateString("fr-FR")}</td>
+        </tr>
+    `).join("");
+}
+
+// Auto-login si token en session
+if (adminToken) showDash();
+</script>
+</body>
+</html>
