@@ -4,3 +4,4 @@ flask-session
 gevent
 gevent-websocket
 psycopg2-binary
+gunicorn
