@@ -4,3 +4,4 @@ flask-session
 psycopg2-binary
 gunicorn
 eventlet
+requests
