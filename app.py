@@ -334,6 +334,7 @@ Règles :
 - Pas trop d'emojis, reste naturel"""
 
     try:
+        print(f"[BOT] Appel API pour {sid}, message: {user_message}")
         resp = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={
@@ -349,15 +350,18 @@ Règles :
             },
             timeout=12
         )
+        print(f"[BOT] Status API: {resp.status_code}")
+        print(f"[BOT] Réponse: {resp.text[:200]}")
         if resp.status_code == 200:
             reply = resp.json()["content"][0]["text"].strip()
             history.append({"role": "assistant", "content": reply})
             time.sleep(1.0)
+            print(f"[BOT] Envoi message à {sid}: {reply}")
             bot_send(sid, reply)
         else:
-            print(f"API error {resp.status_code}: {resp.text}")
+            print(f"[BOT] Erreur API {resp.status_code}: {resp.text}")
     except Exception as e:
-        print(f"Bot reply error: {e}")
+        print(f"[BOT] Exception: {e}")
 
 def start_bot(sid):
     """Démarre une session bot pour cet utilisateur."""
