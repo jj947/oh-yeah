@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OhYeah — Chat anonyme avec des inconnus par émotion | Gratuit</title>
+<meta name="description" content="OhYeah est un chat anonyme gratuit qui te connecte avec un inconnu selon ton émotion du moment. Heureux, triste, énervé, calme ou amoureux — trouve quelqu'un qui te comprend vraiment.">
+<meta name="keywords" content="chat anonyme gratuit, parler à des inconnus, chat émotion, discussion anonyme, omegle français, chat en ligne gratuit, rencontre anonyme, parler à quelqu'un anonymement">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://oh-yeah-1.onrender.com/about">
+<meta property="og:title" content="OhYeah — Chat anonyme par émotion, gratuit">
+<meta property="og:description" content="Parle à un inconnu qui ressent exactement la même chose que toi. Anonyme, gratuit, instantané.">
+<meta property="og:url" content="https://oh-yeah-1.onrender.com/about">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "C'est quoi OhYeah ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "OhYeah est un site de chat anonyme gratuit qui te connecte avec un inconnu selon ton émotion du moment. Tu choisis comment tu te sens et tu discutes instantanément avec quelqu'un qui ressent la même chose."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Est-ce que OhYeah est vraiment anonyme ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui, complètement. Tu choisis un pseudo, personne ne connaît ton identité réelle. Pas de photo, pas de profil, pas de réseau social."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Est-ce que OhYeah est gratuit ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui, OhYeah est gratuit. Tu reçois 200 pièces à l'inscription pour chatter librement."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment fonctionne le matching par émotion ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tu choisis ton émotion parmi heureux, triste, énervé, calme ou amoureux. Le système te connecte automatiquement avec quelqu'un qui a choisi la même émotion."
+      }
+    }
+  ]
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --green: #22c55e;
+    --gold: #f59e0b;
+    --bg: #0a0a12;
+    --border: rgba(255,255,255,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: radial-gradient(circle at 20% 20%, rgba(59,130,246,0.12) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(139,92,246,0.12) 0%, transparent 40%),
+                var(--bg);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+}
+h1, h2, h3 { font-family: 'Syne', sans-serif; }
+a { color: var(--blue); text-decoration: none; }
+
+/* NAV */
+nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 40px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,18,0.8);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+}
+.nav-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; color: white; }
+.nav-cta {
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    color: white; padding: 10px 22px; border-radius: 12px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px;
+}
+.nav-cta:hover { opacity: 0.9; }
+
+/* HERO */
+.hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+.hero-badge {
+    display: inline-block;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--green);
+    padding: 6px 16px; border-radius: 20px;
+    font-size: 13px; font-weight: 700; margin-bottom: 24px;
+}
+.hero h1 {
+    font-size: clamp(32px, 6vw, 56px);
+    font-weight: 800; line-height: 1.1;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, white 60%, rgba(139,92,246,0.8));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero p {
+    font-size: 18px; opacity: 0.7;
+    margin-bottom: 36px; max-width: 500px; margin-left: auto; margin-right: auto;
+}
+.hero-cta {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    color: white; padding: 16px 36px; border-radius: 16px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px;
+    transition: opacity 0.2s, transform 0.1s;
+}
+.hero-cta:hover { opacity: 0.9; transform: translateY(-2px); }
+
+/* EMOTIONS */
+.emotions-section {
+    max-width: 900px; margin: 0 auto;
+    padding: 60px 20px;
+    text-align: center;
+}
+.emotions-section h2 { font-size: 28px; margin-bottom: 10px; }
+.emotions-section p { opacity: 0.6; margin-bottom: 36px; }
+.emotions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 14px;
+}
+.emotion-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px 16px;
+    text-align: center;
+}
+.emotion-card .emoji { font-size: 36px; margin-bottom: 10px; }
+.emotion-card .label { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+.emotion-card .desc { font-size: 12px; opacity: 0.5; margin-top: 6px; }
+
+/* HOW IT WORKS */
+.how-section {
+    max-width: 900px; margin: 0 auto;
+    padding: 60px 20px;
+}
+.how-section h2 { font-size: 28px; text-align: center; margin-bottom: 10px; }
+.how-section > p { text-align: center; opacity: 0.6; margin-bottom: 40px; }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.step {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+}
+.step-num {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px;
+    margin-bottom: 14px;
+}
+.step h3 { font-size: 16px; margin-bottom: 8px; }
+.step p { font-size: 14px; opacity: 0.6; }
+
+/* FAQ */
+.faq-section {
+    max-width: 700px; margin: 0 auto;
+    padding: 60px 20px;
+}
+.faq-section h2 { font-size: 28px; text-align: center; margin-bottom: 40px; }
+.faq-item {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 0;
+}
+.faq-item h3 { font-size: 16px; margin-bottom: 10px; color: white; }
+.faq-item p { font-size: 14px; opacity: 0.6; }
+
+/* CTA FINAL */
+.cta-section {
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.08));
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin: 40px 0;
+}
+.cta-section h2 { font-size: 32px; margin-bottom: 14px; }
+.cta-section p { opacity: 0.6; margin-bottom: 30px; font-size: 16px; }
+
+/* FOOTER */
+footer {
+    text-align: center; padding: 30px 20px;
+    opacity: 0.4; font-size: 13px;
+    border-top: 1px solid var(--border);
+}
+</style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="nav-logo">OhYeah 💬</a>
+    <a href="/" class="nav-cta">Commencer à chatter →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-badge">✅ 100% gratuit · 100% anonyme</div>
+    <h1>Parle à un inconnu qui ressent la même chose que toi</h1>
+    <p>OhYeah est un chat anonyme qui te connecte instantanément avec quelqu'un selon ton émotion du moment. Pas de profil, pas de photo — juste deux personnes qui se comprennent.</p>
+    <a href="/" class="hero-cta">Trouver un partenaire maintenant 🚀</a>
+</section>
+
+<!-- EMOTIONS -->
+<section class="emotions-section">
+    <h2>Choisis ton émotion, trouve ta connexion</h2>
+    <p>Chaque émotion te connecte avec quelqu'un qui vit la même chose en ce moment</p>
+    <div class="emotions-grid">
+        <div class="emotion-card">
+            <div class="emoji">😊</div>
+            <div class="label">Heureux</div>
+            <div class="desc">Partage ta bonne humeur</div>
+        </div>
+        <div class="emotion-card">
+            <div class="emoji">😢</div>
+            <div class="label">Triste</div>
+            <div class="desc">Trouve quelqu'un qui comprend</div>
+        </div>
+        <div class="emotion-card">
+            <div class="emoji">😡</div>
+            <div class="label">Énervé</div>
+            <div class="desc">Exprime-toi librement</div>
+        </div>
+        <div class="emotion-card">
+            <div class="emoji">😌</div>
+            <div class="label">Calme</div>
+            <div class="desc">Une conversation profonde</div>
+        </div>
+        <div class="emotion-card">
+            <div class="emoji">❤️</div>
+            <div class="label">Amoureux</div>
+            <div class="desc">Partage ce que tu ressens</div>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+    <h2>Comment ça marche ?</h2>
+    <p>Trois étapes, moins de 10 secondes</p>
+    <div class="steps">
+        <div class="step">
+            <div class="step-num">1</div>
+            <h3>Crée ton compte</h3>
+            <p>Inscription gratuite en 30 secondes. Juste un email et un pseudo anonyme.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <h3>Choisis ton émotion</h3>
+            <p>Sélectionne ce que tu ressens en ce moment parmi 5 émotions disponibles.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <h3>Chatte anonymement</h3>
+            <p>Tu es instantanément connecté avec un inconnu qui ressent la même chose. La conversation commence.</p>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+    <h2>Questions fréquentes</h2>
+    <div class="faq-item">
+        <h3>Est-ce que OhYeah est vraiment gratuit ?</h3>
+        <p>Oui, complètement gratuit. Tu reçois 200 pièces à l'inscription pour chatter librement. Tu peux en gagner plus en regardant des publicités.</p>
+    </div>
+    <div class="faq-item">
+        <h3>Est-ce que mon identité est protégée ?</h3>
+        <p>Oui. Tu choisis un pseudo, personne ne connaît ton vrai nom, ton adresse ou ta localisation. OhYeah ne partage aucune donnée personnelle.</p>
+    </div>
+    <div class="faq-item">
+        <h3>C'est quoi la différence avec Omegle ?</h3>
+        <p>Sur OhYeah, le matching se fait par émotion. Tu ne tombes pas sur quelqu'un au hasard — tu rencontres quelqu'un qui ressent exactement la même chose que toi en ce moment. C'est une conversation qui a du sens dès le départ.</p>
+    </div>
+    <div class="faq-item">
+        <h3>Que se passe-t-il si je suis seul à attendre ?</h3>
+        <p>Si personne ne partage ton émotion au même moment, un assistant automatique prend le relais pour ne pas te laisser seul, jusqu'à ce qu'un vrai partenaire arrive.</p>
+    </div>
+    <div class="faq-item">
+        <h3>OhYeah est-il disponible sur mobile ?</h3>
+        <p>Oui, OhYeah fonctionne parfaitement sur tous les navigateurs mobiles — iPhone, Android, tablette. Pas besoin de télécharger une application.</p>
+    </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-section">
+    <h2>Prêt à rencontrer quelqu'un qui te comprend ? 💬</h2>
+    <p>Rejoins OhYeah gratuitement et commence à chatter en moins d'une minute</p>
+    <a href="/" class="hero-cta">Créer mon compte gratuit →</a>
+</section>
+
+<footer>
+    <p>© 2025 OhYeah — Chat anonyme par émotion · <a href="/">Accueil</a></p>
+</footer>
+
+</body>
+</html>
