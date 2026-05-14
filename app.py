@@ -112,11 +112,32 @@ def about():
 
 @app.route("/sitemap.xml")
 def sitemap():
-    return send_from_directory("static", "sitemap.xml", mimetype="application/xml")
+    content = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://oh-yeah-1.onrender.com/</loc>
+    <lastmod>2025-05-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://oh-yeah-1.onrender.com/about</loc>
+    <lastmod>2025-05-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>'''
+    return Response(content, mimetype="application/xml")
 
 @app.route("/robots.txt")
 def robots():
-    return send_from_directory("static", "robots.txt", mimetype="text/plain")
+    content = '''User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+Sitemap: https://oh-yeah-1.onrender.com/sitemap.xml'''
+    return Response(content, mimetype="text/plain")
 
 @app.route("/api/register", methods=["POST"])
 def register():
