@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, jsonify, session
 from flask_socketio import SocketIO, emit
 from collections import deque
+import eventlet
+eventlet.monkey_patch()
 import os
 import psycopg2
 import psycopg2.extras
@@ -13,7 +15,7 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = secrets.token_hex(32)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
 # ===== BASE DE DONNÉES POSTGRESQL =====
 
