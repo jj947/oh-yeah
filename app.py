@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, Response
+from flask import Flask, render_template, request, jsonify, session
 from flask_socketio import SocketIO, emit
 from collections import deque
 import os
@@ -105,39 +105,6 @@ REWARD_AD = 20
 @app.route("/")
 def index():
     return render_template("index.html")
-
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
-@app.route("/sitemap.xml")
-def sitemap():
-    content = '''<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://oh-yeah-1.onrender.com/</loc>
-    <lastmod>2025-05-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://oh-yeah-1.onrender.com/about</loc>
-    <lastmod>2025-05-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-</urlset>'''
-    return Response(content, mimetype="application/xml")
-
-@app.route("/robots.txt")
-def robots():
-    content = '''User-agent: *
-Allow: /
-Disallow: /api/
-Disallow: /admin
-
-Sitemap: https://oh-yeah-1.onrender.com/sitemap.xml'''
-    return Response(content, mimetype="text/plain")
 
 @app.route("/api/register", methods=["POST"])
 def register():
@@ -312,10 +279,11 @@ def is_bot_pair(sid):
 def try_match(emotion):
     if emotion not in waiting:
         return
-    # Nettoyer la file : garder seulement ceux connectés et sans partenaire
+    # Nettoyer la file : garder seulement ceux connectés et sans partenaire HUMAIN
+    # (ceux avec le bot sont OK à matcher avec un humain)
     waiting[emotion] = deque([
         s for s in waiting[emotion]
-        if s in connected and s not in pairs
+        if s in connected and (s not in pairs or pairs.get(s) == "bot")
     ])
     while len(waiting[emotion]) >= 2:
         sid1 = waiting[emotion].popleft()
@@ -323,6 +291,13 @@ def try_match(emotion):
         if sid1 == sid2:
             waiting[emotion].appendleft(sid2)
             continue
+        # Déconnecter le bot si l'un d'eux en avait un
+        if is_bot_pair(sid1):
+            stop_bot(sid1)
+            socketio.emit("message", {"from": "Système", "emotion": "", "message": "✨ Un vrai partenaire vient d'arriver !"}, to=sid1)
+        if is_bot_pair(sid2):
+            stop_bot(sid2)
+            socketio.emit("message", {"from": "Système", "emotion": "", "message": "✨ Un vrai partenaire vient d'arriver !"}, to=sid2)
         pairs[sid1] = sid2
         pairs[sid2] = sid1
         socketio.emit("status", "🎉 partenaire trouvé ! vous pouvez discuter", to=sid1)
@@ -431,6 +406,15 @@ def on_join(data):
     users[sid] = {"username": username, "emotion": emotion, "user_id": user_id}
     if emotion not in waiting:
         waiting[emotion] = deque()
+
+    # Ajouter aussi dans la file les gens avec le bot qui ont la même émotion
+    for other_sid, other_data in list(users.items()):
+        if (other_sid != sid
+                and other_data.get("emotion") == emotion
+                and is_bot_pair(other_sid)
+                and other_sid not in waiting.get(emotion, [])):
+            waiting[emotion].append(other_sid)
+
     waiting[emotion].append(sid)
     socketio.emit("status", "⏳ en attente d'un partenaire...", to=sid)
     try_match(emotion)
