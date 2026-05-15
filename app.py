@@ -1,21 +1,16 @@
-from flask import Flask, render_template, request, jsonify, session
-from flask_socketio import SocketIO, emit
+from flask import Flask, render_template, request, jsonify, session, Response
+from flask_socketio import SocketIO
 from collections import deque
-import eventlet
-eventlet.monkey_patch()
 import os
 import psycopg2
 import psycopg2.extras
 import hashlib
 import secrets
-import threading
-import time
-import requests
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = secrets.token_hex(32)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # ===== BASE DE DONNÉES POSTGRESQL =====
 
@@ -102,11 +97,44 @@ COST_NEXT_PARTNER = 10
 COST_MESSAGE = 1
 REWARD_AD = 20
 
-# ===== ROUTES AUTH =====
+# ===== ROUTES =====
 
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+@app.route("/sitemap.xml")
+def sitemap():
+    content = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://oh-yeah-1.onrender.com/</loc>
+    <lastmod>2025-05-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://oh-yeah-1.onrender.com/about</loc>
+    <lastmod>2025-05-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>'''
+    return Response(content, mimetype="application/xml")
+
+@app.route("/robots.txt")
+def robots():
+    content = '''User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+Sitemap: https://oh-yeah-1.onrender.com/sitemap.xml'''
+    return Response(content, mimetype="text/plain")
 
 @app.route("/api/register", methods=["POST"])
 def register():
@@ -251,41 +279,15 @@ def admin_stats():
 
 connected = set()
 waiting = {}
-pairs = {}        # sid -> sid  OU  sid -> "bot"
-users = {}        # sid -> {username, emotion, user_id}
-bot_history = {}  # sid -> [messages]
-
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-BOT_NAME = "Écho"
-BOT_DELAY = 15
-
-EMOTION_CONTEXT = {
-    "heureux": "L'utilisateur est heureux. Sois joyeux, enthousiaste, partage cette bonne humeur.",
-    "triste": "L'utilisateur est triste. Sois doux, empathique, à l'écoute. Ne minimise pas sa tristesse.",
-    "enerve": "L'utilisateur est énervé. Sois calme, compréhensif, laisse-le s'exprimer sans le juger.",
-    "calme": "L'utilisateur est calme. Sois posé, philosophique, engage une conversation profonde.",
-    "amour": "L'utilisateur se sent amoureux. Sois chaleureux, romantique dans le ton, bienveillant.",
-}
-
-OPENING_MESSAGES = {
-    "heureux": "Heyy ! Moi aussi je suis de bonne humeur 😄 Qu'est-ce qui te rend heureux aujourd'hui ?",
-    "triste": "Salut... je te sens un peu mélancolique. T'as envie de parler de ce qui se passe ?",
-    "enerve": "Hey. Je vois que t'es énervé. C'est quoi qui t'a mis dans cet état ?",
-    "calme": "Salut. Quelle agréable sensation ce calme... T'es plutôt du genre à réfléchir quand t'es calme ?",
-    "amour": "Salut 🌸 L'amour dans l'air... c'est beau. C'est quelqu'un en particulier ?",
-}
-
-def is_bot_pair(sid):
-    return pairs.get(sid) == "bot"
+pairs = {}
+users = {}
 
 def try_match(emotion):
     if emotion not in waiting:
         return
-    # Nettoyer la file : garder seulement ceux connectés et sans partenaire HUMAIN
-    # (ceux avec le bot sont OK à matcher avec un humain)
     waiting[emotion] = deque([
         s for s in waiting[emotion]
-        if s in connected and (s not in pairs or pairs.get(s) == "bot")
+        if s in connected and s not in pairs
     ])
     while len(waiting[emotion]) >= 2:
         sid1 = waiting[emotion].popleft()
@@ -293,109 +295,10 @@ def try_match(emotion):
         if sid1 == sid2:
             waiting[emotion].appendleft(sid2)
             continue
-        # Déconnecter le bot si l'un d'eux en avait un
-        if is_bot_pair(sid1):
-            stop_bot(sid1)
-            socketio.emit("message", {"from": "Système", "emotion": "", "message": "✨ Un vrai partenaire vient d'arriver !"}, to=sid1)
-        if is_bot_pair(sid2):
-            stop_bot(sid2)
-            socketio.emit("message", {"from": "Système", "emotion": "", "message": "✨ Un vrai partenaire vient d'arriver !"}, to=sid2)
         pairs[sid1] = sid2
         pairs[sid2] = sid1
         socketio.emit("status", "🎉 partenaire trouvé ! vous pouvez discuter", to=sid1)
         socketio.emit("status", "🎉 partenaire trouvé ! vous pouvez discuter", to=sid2)
-
-def bot_send(sid, text):
-    """Envoie un message du bot à l'utilisateur."""
-    if sid not in connected:
-        return
-    socketio.emit("message", {
-        "from": BOT_NAME,
-        "emotion": users.get(sid, {}).get("emotion", ""),
-        "message": text
-    }, to=sid)
-
-def bot_reply_thread(sid, user_message):
-    """Thread : appelle l'API Claude et envoie la réponse."""
-    if sid not in bot_history or sid not in connected:
-        return
-
-    emotion = users.get(sid, {}).get("emotion", "")
-    history = bot_history[sid]
-    history.append({"role": "user", "content": user_message})
-
-    system_prompt = f"""Tu es Écho, un compagnon anonyme sur OhYeah, un site de chat par émotion.
-{EMOTION_CONTEXT.get(emotion, "Sois bienveillant.")}
-Règles :
-- Réponds en français, naturellement, en 1-3 phrases max
-- Tu passes pour un humain anonyme, ne révèle pas que tu es une IA SAUF si on te le demande directement
-- Si on te demande si tu es un bot/IA, réponds honnêtement : "Je suis un assistant automatique, un vrai partenaire arrive bientôt 😊"
-- Pose des questions pour maintenir la conversation
-- Pas trop d'emojis, reste naturel"""
-
-    try:
-        print(f"[BOT] Appel API pour {sid}, message: {user_message}")
-        resp = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json"
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 120,
-                "system": system_prompt,
-                "messages": history[-10:]
-            },
-            timeout=12
-        )
-        print(f"[BOT] Status API: {resp.status_code}")
-        print(f"[BOT] Réponse: {resp.text[:200]}")
-        if resp.status_code == 200:
-            reply = resp.json()["content"][0]["text"].strip()
-            history.append({"role": "assistant", "content": reply})
-            time.sleep(1.0)
-            print(f"[BOT] Envoi message à {sid}: {reply}")
-            bot_send(sid, reply)
-        else:
-            print(f"[BOT] Erreur API {resp.status_code}: {resp.text}")
-    except Exception as e:
-        print(f"[BOT] Exception: {e}")
-
-def start_bot(sid):
-    """Démarre une session bot pour cet utilisateur."""
-    if sid not in connected or sid in pairs:
-        return
-    emotion = users.get(sid, {}).get("emotion", "")
-    pairs[sid] = "bot"
-    bot_history[sid] = []
-    opening = OPENING_MESSAGES.get(emotion, "Salut ! Comment tu vas ?")
-    bot_history[sid].append({"role": "assistant", "content": opening})
-    socketio.emit("status", "🎉 partenaire trouvé ! vous pouvez discuter", to=sid)
-    time.sleep(0.5)
-    bot_send(sid, opening)
-
-def schedule_bot(sid):
-    """Lance le bot après BOT_DELAY secondes si pas encore matché."""
-    def run():
-        time.sleep(BOT_DELAY)
-        if sid in connected and sid not in pairs:
-            # Retirer de la file d'attente avant de connecter le bot
-            emo = users.get(sid, {}).get("emotion")
-            if emo and emo in waiting:
-                try:
-                    waiting[emo].remove(sid)
-                except ValueError:
-                    pass
-            start_bot(sid)
-    threading.Thread(target=run, daemon=True).start()
-
-def stop_bot(sid):
-    """Arrête la session bot."""
-    bot_history.pop(sid, None)
-    if pairs.get(sid) == "bot":
-        pairs.pop(sid, None)
 
 @socketio.on("connect")
 def on_connect():
@@ -412,21 +315,9 @@ def on_join(data):
     users[sid] = {"username": username, "emotion": emotion, "user_id": user_id}
     if emotion not in waiting:
         waiting[emotion] = deque()
-
-    # Ajouter aussi dans la file les gens avec le bot qui ont la même émotion
-    for other_sid, other_data in list(users.items()):
-        if (other_sid != sid
-                and other_data.get("emotion") == emotion
-                and is_bot_pair(other_sid)
-                and other_sid not in waiting.get(emotion, [])):
-            waiting[emotion].append(other_sid)
-
     waiting[emotion].append(sid)
     socketio.emit("status", "⏳ en attente d'un partenaire...", to=sid)
     try_match(emotion)
-    # Programmer le bot si toujours en attente
-    if sid not in pairs:
-        schedule_bot(sid)
 
 @socketio.on("next_partner")
 def on_next_partner():
@@ -439,10 +330,7 @@ def on_next_partner():
             return
         user = get_user_by_id(user_id)
         socketio.emit("coins_update", {"coins": user["coins"]}, to=sid)
-    # Déconnecter du bot ou du partenaire
-    if is_bot_pair(sid):
-        stop_bot(sid)
-    elif sid in pairs:
+    if sid in pairs:
         partner = pairs.pop(sid)
         if partner in pairs:
             pairs.pop(partner)
@@ -452,15 +340,12 @@ def on_next_partner():
                 waiting.setdefault(emo, deque())
                 waiting[emo].append(partner)
                 try_match(emo)
-    # Remettre en file
     emo = users.get(sid, {}).get("emotion")
     if emo:
         waiting.setdefault(emo, deque())
         waiting[emo].append(sid)
         socketio.emit("status", "🔎 recherche d'un nouveau partenaire...", to=sid)
         try_match(emo)
-        if sid not in pairs:
-            schedule_bot(sid)
 
 @socketio.on("message")
 def on_message(data):
@@ -468,7 +353,6 @@ def on_message(data):
     user_id = users.get(sid, {}).get("user_id")
     if sid not in pairs:
         return
-    # Déduire les pièces
     if user_id:
         ok = update_coins(user_id, -COST_MESSAGE)
         if not ok:
@@ -476,24 +360,18 @@ def on_message(data):
             return
         user = get_user_by_id(user_id)
         socketio.emit("coins_update", {"coins": user["coins"]}, to=sid)
-    # Bot ou humain ?
-    if is_bot_pair(sid):
-        threading.Thread(target=bot_reply_thread, args=(sid, data["message"]), daemon=True).start()
-    else:
-        partner = pairs[sid]
-        if partner in connected:
-            socketio.emit("message", {
-                "from": users[sid]["username"],
-                "emotion": users[sid]["emotion"],
-                "message": data["message"]
-            }, to=partner)
+    partner = pairs[sid]
+    if partner in connected:
+        socketio.emit("message", {
+            "from": users[sid]["username"],
+            "emotion": users[sid]["emotion"],
+            "message": data["message"]
+        }, to=partner)
 
 @socketio.on("leave_chat")
 def on_leave_chat():
     sid = request.sid
-    if is_bot_pair(sid):
-        stop_bot(sid)
-    elif sid in pairs:
+    if sid in pairs:
         partner = pairs.pop(sid)
         if partner in pairs:
             pairs.pop(partner)
@@ -522,13 +400,11 @@ def on_leave_queue():
 def on_disconnect():
     sid = request.sid
     connected.discard(sid)
-    if is_bot_pair(sid):
-        stop_bot(sid)
-    elif sid in pairs:
+    if sid in pairs:
         partner = pairs.pop(sid)
         if partner in pairs:
             pairs.pop(partner)
-            socketio.emit("status", "⚠️ le partenaire a quitté la discussion", to=partner)
+            socketio.emit("partner_left", {}, to=partner)
             emo = users.get(partner, {}).get("emotion")
             if emo:
                 waiting.setdefault(emo, deque())
