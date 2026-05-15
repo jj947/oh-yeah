@@ -8,16 +8,12 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
 <title>OhYeah — Chat anonyme avec des inconnus par émotion</title>
-
-<!-- SEO de base -->
 <meta name="description" content="Chatte anonymement avec des inconnus selon ton émotion du moment. Heureux, triste, énervé, amoureux — trouve quelqu'un qui te comprend sur OhYeah.">
 <meta name="keywords" content="chat anonyme, parler à des inconnus, chat émotion, rencontre anonyme, discussion anonyme, omegle français, parler à quelqu'un, chat gratuit">
 <meta name="author" content="OhYeah">
 <meta name="robots" content="index, follow">
 <meta name="google-site-verification" content="u4NHUgnQlUFyUC6USLuvAnQKNxKvKxj5s1G9sm96uXg" />
 <link rel="canonical" href="https://oh-yeah-1.onrender.com/">
-
-<!-- Open Graph (Facebook, Discord, WhatsApp...) -->
 <meta property="og:title" content="OhYeah — Chat anonyme par émotion">
 <meta property="og:description" content="Parle à un inconnu qui ressent la même chose que toi. Anonyme, gratuit, instantané.">
 <meta property="og:type" content="website">
@@ -25,14 +21,10 @@
 <meta property="og:image" content="https://oh-yeah-1.onrender.com/static/og-image.png">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:site_name" content="OhYeah Chat">
-
-<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="OhYeah — Chat anonyme par émotion">
 <meta name="twitter:description" content="Parle à un inconnu qui ressent la même chose que toi. Anonyme, gratuit, instantané.">
 <meta name="twitter:image" content="https://oh-yeah-1.onrender.com/static/og-image.png">
-
-<!-- Données structurées (Google Rich Results) -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -43,14 +35,9 @@
   "applicationCategory": "SocialNetworkingApplication",
   "operatingSystem": "Web",
   "inLanguage": "fr",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "EUR"
-  }
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
 }
 </script>
-
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -181,8 +168,6 @@ select option { background: #1a1a2e; }
 .shop-item .amount { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--gold); }
 .shop-item .price { font-size: 13px; opacity: 0.7; margin-top: 4px; }
 .shop-coming { text-align: center; opacity: 0.5; font-size: 13px; margin-top: 8px; font-style: italic; }
-
-/* MODALE PUB */
 #ad-modal {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.9); z-index: 9999;
@@ -223,41 +208,67 @@ select option { background: #1a1a2e; }
     background: rgba(245,158,11,0.08); border: 1px dashed rgba(245,158,11,0.3);
     border-radius: 12px; padding: 14px; text-align: center;
 }
-
-/* PUB FOOTER — visible sans connexion pour A-ADS */
 #public-ad-footer {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
+    position: fixed; bottom: 0; left: 0; right: 0;
     background: rgba(10,10,18,0.92);
     border-top: 1px solid var(--border);
     padding: 8px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    z-index: 50;
-    min-height: 60px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    z-index: 50; min-height: 60px;
 }
 #public-ad-footer .ad-label {
-    font-size: 10px;
-    opacity: 0.3;
-    writing-mode: vertical-rl;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 10px; opacity: 0.3;
+    writing-mode: vertical-rl; text-transform: uppercase; letter-spacing: 1px;
 }
+
+/* INDICATEUR DE FRAPPE */
+#typing-indicator {
+    font-size: 12px; opacity: 0; color: var(--blue);
+    font-style: italic; padding: 2px 0 4px;
+    transition: opacity 0.3s; min-height: 18px;
+}
+#typing-indicator.visible { opacity: 1; }
+
+/* SIGNALEMENT */
+.report-btn {
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.3); font-size: 12px;
+    cursor: pointer; padding: 0; margin-left: auto;
+    text-decoration: underline;
+}
+.report-btn:hover { color: var(--red); }
+#report-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 9998;
+    justify-content: center; align-items: center; padding: 20px;
+}
+#report-modal.show { display: flex; }
+.report-card {
+    background: #0f0f1a; border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px;
+    width: 100%; max-width: 360px; text-align: center;
+}
+.report-card h3 { font-family: 'Syne', sans-serif; font-size: 18px; margin-bottom: 8px; }
+.report-card p { font-size: 13px; opacity: 0.5; margin-bottom: 18px; }
+.report-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.report-option {
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px; cursor: pointer;
+    font-size: 14px; text-align: left; color: white;
+    transition: border-color 0.2s;
+}
+.report-option:hover { border-color: var(--red); }
+.report-option.selected { border-color: var(--red); background: rgba(239,68,68,0.1); }
 </style>
 </head>
 <body>
 
-<!-- PUB TOUJOURS VISIBLE (footer) — nécessaire pour validation A-ADS -->
 <div id="public-ad-footer">
     <span class="ad-label">pub</span>
-    <!-- BEGIN AADS AD UNIT 2437251 -->
     <div style="flex:1; max-width:600px;">
         <iframe data-aa='2437251' src='//acceptable.a-ads.com/2437251/?size=Adaptive'
             style='border:0; padding:0; width:100%; height:50px; overflow:hidden; display:block; margin:auto;'></iframe>
     </div>
-    <!-- END AADS AD UNIT 2437251 -->
 </div>
 
 <div class="topbar">
@@ -329,11 +340,15 @@ select option { background: #1a1a2e; }
     <div id="chat">
         <div id="status-bar" class="waiting-anim">⏳ en attente d'un partenaire...</div>
         <div id="messages"></div>
+        <div id="typing-indicator">✏️ votre partenaire écrit...</div>
         <div class="msg-input-row">
-            <input id="msg" placeholder="Ton message..." onkeydown="if(event.key==='Enter') send()">
+            <input id="msg" placeholder="Ton message..." onkeydown="if(event.key==='Enter') send()" oninput="onTyping()">
             <button class="btn" onclick="send()" style="width:auto; padding:13px 16px;">➤</button>
         </div>
-        <div class="cost-hint">1 🪙 par message</div>
+        <div class="cost-hint" style="display:flex; justify-content:space-between; align-items:center;">
+            <button class="report-btn" onclick="openReport()">⚑ Signaler</button>
+            <span>1 🪙 par message</span>
+        </div>
         <div class="chat-actions">
             <button class="btn btn-outline" onclick="leaveChat()">🏠 Menu</button>
             <button class="btn btn-danger" onclick="nextPartner()">🔄 Changer (10 🪙)</button>
@@ -387,16 +402,30 @@ select option { background: #1a1a2e; }
         <div class="ad-modal-title">📺 Publicité</div>
         <div class="ad-modal-sub">Regarde pendant 30 secondes pour gagner 20 🪙</div>
         <div class="ad-container">
-            <!-- BEGIN AADS AD UNIT 2437251 -->
             <div style="width:100%; margin:auto;">
                 <iframe data-aa='2437251' src='//acceptable.a-ads.com/2437251/?size=Adaptive'
                     style='border:0; padding:0; width:100%; height:auto; overflow:hidden; display:block; margin:auto; min-height:150px;'></iframe>
             </div>
-            <!-- END AADS AD UNIT 2437251 -->
         </div>
         <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar"></div></div>
         <div id="timer-text">⏳ Encore <span id="countdown">30</span> secondes...</div>
         <button id="claim-btn" onclick="claimAdReward()">🎉 Réclamer mes 20 🪙 !</button>
+    </div>
+</div>
+
+<!-- MODALE SIGNALEMENT -->
+<div id="report-modal">
+    <div class="report-card">
+        <h3>⚑ Signaler l'utilisateur</h3>
+        <p>Pourquoi tu signales cette personne ?</p>
+        <div class="report-options">
+            <button class="report-option" onclick="selectReport(this, 'Contenu inapproprié')">🔞 Contenu inapproprié</button>
+            <button class="report-option" onclick="selectReport(this, 'Harcèlement')">😡 Harcèlement</button>
+            <button class="report-option" onclick="selectReport(this, 'Spam')">🤖 Spam / Bot</button>
+            <button class="report-option" onclick="selectReport(this, 'Autre')">❓ Autre</button>
+        </div>
+        <button class="btn btn-danger" onclick="submitReport()" style="margin-top:0;">Envoyer le signalement</button>
+        <button class="btn btn-outline" onclick="closeReport()" style="margin-top:6px;">Annuler</button>
     </div>
 </div>
 
@@ -406,6 +435,44 @@ select option { background: #1a1a2e; }
 let currentUser = null;
 let socket = null;
 let adTimer = null;
+let typingTimer = null;
+let isTyping = false;
+let selectedReport = null;
+
+// Sons de notification
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function getAudioCtx() {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    return audioCtx;
+}
+
+function playSound(type) {
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        if (type === 'message') {
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.25);
+        } else if (type === 'match') {
+            osc.frequency.setValueAtTime(523, ctx.currentTime);
+            osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(784, ctx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.4);
+        }
+    } catch(e) {}
+}
 
 async function init() {
     try {
@@ -414,7 +481,6 @@ async function init() {
         else showSection("auth");
     } catch { showSection("auth"); }
     initSocket();
-    // Masquer le footer pub pour les premium
     updateAdFooter();
 }
 
@@ -546,18 +612,80 @@ async function claimAdReward() {
     document.getElementById("ad-modal").classList.remove("show");
 }
 
+// ===== INDICATEUR DE FRAPPE =====
+function onTyping() {
+    if (!socket) return;
+    if (!isTyping) {
+        isTyping = true;
+        socket.emit("typing", {typing: true});
+    }
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+        isTyping = false;
+        socket.emit("typing", {typing: false});
+    }, 1500);
+}
+
+function showTyping(visible) {
+    const el = document.getElementById("typing-indicator");
+    if (visible) el.classList.add("visible");
+    else el.classList.remove("visible");
+}
+
+// ===== SIGNALEMENT =====
+function openReport() {
+    selectedReport = null;
+    document.querySelectorAll(".report-option").forEach(b => b.classList.remove("selected"));
+    document.getElementById("report-modal").classList.add("show");
+}
+
+function closeReport() {
+    document.getElementById("report-modal").classList.remove("show");
+}
+
+function selectReport(btn, reason) {
+    document.querySelectorAll(".report-option").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    selectedReport = reason;
+}
+
+function submitReport() {
+    if (!selectedReport) { toast("Choisis une raison !"); return; }
+    socket.emit("report", {reason: selectedReport});
+    closeReport();
+    toast("✅ Signalement envoyé, merci !");
+}
+
 function initSocket() {
     socket = io(window.location.origin, {transports: ["websocket", "polling"]});
+
     socket.on("status", t => {
         const bar = document.getElementById("status-bar");
         bar.textContent = t;
         bar.className = t.includes("attente") ? "waiting-anim" : "";
+        if (t.includes("partenaire trouvé")) {
+            playSound('match');
+            showTyping(false);
+        }
     });
-    socket.on("message", d => addMessage(d.from, d.message, false, d.emotion));
+
+    socket.on("message", d => {
+        addMessage(d.from, d.message, false, d.emotion);
+        playSound('message');
+        showTyping(false);
+    });
+
+    socket.on("typing", d => {
+        showTyping(d.typing);
+    });
+
     socket.on("count", n => document.getElementById("counter").textContent = n + " connectés");
     socket.on("coins_update", d => updateCoins(d.coins));
     socket.on("no_coins", () => toast("❌ Plus assez de pièces ! Regarde une pub ou achète des pièces 🛒"));
-    socket.on("partner_left", () => addSystemMessage("⚠️ Votre partenaire a quitté la discussion."));
+    socket.on("partner_left", () => {
+        addSystemMessage("⚠️ Votre partenaire a quitté la discussion.");
+        showTyping(false);
+    });
 }
 
 function joinChat() {
@@ -566,6 +694,7 @@ function joinChat() {
     if (!currentUser) return;
     socket.emit("join", {username: currentUser.username, emotion, user_id: currentUser.id});
     document.getElementById("messages").innerHTML = "";
+    showTyping(false);
     showSection("chat");
 }
 
@@ -575,6 +704,10 @@ function send() {
     socket.emit("message", {message: m});
     addMessage(currentUser.username, m, true, "");
     document.getElementById("msg").value = "";
+    // Arrêter l'indicateur de frappe
+    isTyping = false;
+    clearTimeout(typingTimer);
+    socket.emit("typing", {typing: false});
 }
 
 function addMessage(user, msg, me=false, emotion="") {
@@ -599,10 +732,12 @@ function addSystemMessage(text) {
 function nextPartner() {
     socket.emit("next_partner");
     document.getElementById("messages").innerHTML = "";
+    showTyping(false);
 }
 
 function leaveChat() {
     socket.emit("leave_chat");
+    showTyping(false);
     showSection("menu");
 }
 
@@ -615,6 +750,7 @@ function toast(msg) {
 
 init();
 </script>
+
 <div style="position:fixed; bottom:70px; left:0; right:0; text-align:center; padding:8px; font-size:11px; opacity:0.3; z-index:51;">
     <a href="/privacy" style="color:white;">Politique de confidentialité</a>
 </div>
