@@ -39,6 +39,14 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS reports (
+            id SERIAL PRIMARY KEY,
+            reporter_username TEXT,
+            reason TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     conn.commit()
     cur.close()
     conn.close()
@@ -106,10 +114,6 @@ def index():
 @app.route("/about")
 def about():
     return render_template("about.html")
-
-@app.route("/privacy")
-def privacy():
-    return render_template("privacy.html")
 
 @app.route("/sitemap.xml")
 def sitemap():
@@ -274,10 +278,13 @@ def admin_stats():
     total_coins = cur.fetchone()["total"]
     cur.execute("SELECT id, username, email, coins, is_premium, created_at FROM users ORDER BY created_at DESC LIMIT 20")
     recent_users = [dict(row) for row in cur.fetchall()]
+    cur.execute("SELECT id, reporter_username, reason, created_at FROM reports ORDER BY created_at DESC LIMIT 20")
+    recent_reports = [dict(row) for row in cur.fetchall()]
     cur.close()
     conn.close()
     return jsonify({"total_users": total_users, "today": today, "this_week": this_week,
-        "premium": premium, "total_coins": int(total_coins), "live": len(connected), "recent_users": recent_users})
+        "premium": premium, "total_coins": int(total_coins), "live": len(connected),
+        "recent_users": recent_users, "recent_reports": recent_reports})
 
 # ===== SOCKET.IO =====
 
@@ -421,8 +428,6 @@ def on_disconnect():
             pass
     users.pop(sid, None)
     socketio.emit("count", len(connected))
-# ===== AJOUTE CES DEUX ÉVÉNEMENTS dans app.py =====
-# Juste après le @socketio.on("leave_queue") existant
 
 @socketio.on("typing")
 def on_typing(data):
@@ -437,10 +442,12 @@ def on_report(data):
     sid = request.sid
     reason = data.get("reason", "Non spécifié")
     username = users.get(sid, {}).get("username", "Inconnu")
-    # Log le signalement (tu peux aussi l'enregistrer en base plus tard)
-    print(f"[REPORT] {username} a signalé son partenaire : {reason}")
-    # Optionnel : déconnecter automatiquement après un signalement
-    # socket.emit("partner_left", {}, to=sid)
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO reports (reporter_username, reason) VALUES (%s, %s)", (username, reason))
+    conn.commit()
+    cur.close()
+    conn.close()
 
 # ===== RUN =====
 if __name__ == "__main__":
