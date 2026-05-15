@@ -421,6 +421,26 @@ def on_disconnect():
             pass
     users.pop(sid, None)
     socketio.emit("count", len(connected))
+# ===== AJOUTE CES DEUX ÉVÉNEMENTS dans app.py =====
+# Juste après le @socketio.on("leave_queue") existant
+
+@socketio.on("typing")
+def on_typing(data):
+    sid = request.sid
+    if sid in pairs:
+        partner = pairs[sid]
+        if partner in connected:
+            socketio.emit("typing", {"typing": data.get("typing", False)}, to=partner)
+
+@socketio.on("report")
+def on_report(data):
+    sid = request.sid
+    reason = data.get("reason", "Non spécifié")
+    username = users.get(sid, {}).get("username", "Inconnu")
+    # Log le signalement (tu peux aussi l'enregistrer en base plus tard)
+    print(f"[REPORT] {username} a signalé son partenaire : {reason}")
+    # Optionnel : déconnecter automatiquement après un signalement
+    # socket.emit("partner_left", {}, to=sid)
 
 # ===== RUN =====
 if __name__ == "__main__":
