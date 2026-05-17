@@ -47,6 +47,24 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS messages (
+            id SERIAL PRIMARY KEY,
+            session_id TEXT,
+            username TEXT,
+            content TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS bans (
+            id SERIAL PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            reason TEXT,
+            banned_until TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     conn.commit()
     cur.close()
     conn.close()
@@ -280,11 +298,13 @@ def admin_stats():
     recent_users = [dict(row) for row in cur.fetchall()]
     cur.execute("SELECT id, reporter_username, reason, created_at FROM reports ORDER BY created_at DESC LIMIT 20")
     recent_reports = [dict(row) for row in cur.fetchall()]
+    cur.execute("SELECT COUNT(*) as n FROM bans WHERE banned_until > NOW()")
+    active_bans = cur.fetchone()["n"]
     cur.close()
     conn.close()
     return jsonify({"total_users": total_users, "today": today, "this_week": this_week,
         "premium": premium, "total_coins": int(total_coins), "live": len(connected),
-        "recent_users": recent_users, "recent_reports": recent_reports})
+        "recent_users": recent_users, "recent_reports": recent_reports, "active_bans": active_bans})
 
 # ===== SOCKET.IO =====
 
@@ -292,6 +312,41 @@ connected = set()
 waiting = {}
 pairs = {}
 users = {}
+chat_sessions = {}  # sid -> session_id (pour grouper les messages d'une conversation)
+
+def is_banned(username):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT banned_until FROM bans WHERE username = %s", (username,))
+    ban = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not ban:
+        return False, None
+    banned_until = ban["banned_until"]
+    if datetime.now() < banned_until:
+        return True, banned_until
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM bans WHERE username = %s", (username,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return False, None
+
+def save_message(session_id, username, content):
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO messages (session_id, username, content) VALUES (%s, %s, %s)",
+            (session_id, username, content)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Save message error: {e}")
 
 def try_match(emotion):
     if emotion not in waiting:
@@ -306,6 +361,9 @@ def try_match(emotion):
         if sid1 == sid2:
             waiting[emotion].appendleft(sid2)
             continue
+        session_id = secrets.token_hex(8)
+        chat_sessions[sid1] = session_id
+        chat_sessions[sid2] = session_id
         pairs[sid1] = sid2
         pairs[sid2] = sid1
         socketio.emit("status", "🎉 partenaire trouvé ! vous pouvez discuter", to=sid1)
@@ -323,6 +381,14 @@ def on_join(data):
     username = data.get("username", "Anonyme")
     emotion = data.get("emotion", "")
     user_id = data.get("user_id")
+
+    # Vérifier si banni
+    banned, banned_until = is_banned(username)
+    if banned:
+        until_str = banned_until.strftime("%d/%m/%Y à %Hh%M")
+        socketio.emit("banned", {"until": until_str}, to=sid)
+        return
+
     users[sid] = {"username": username, "emotion": emotion, "user_id": user_id}
     if emotion not in waiting:
         waiting[emotion] = deque()
@@ -372,11 +438,16 @@ def on_message(data):
         user = get_user_by_id(user_id)
         socketio.emit("coins_update", {"coins": user["coins"]}, to=sid)
     partner = pairs[sid]
+    username = users[sid]["username"]
+    content = data["message"]
+    # Sauvegarder le message
+    session_id = chat_sessions.get(sid, "unknown")
+    save_message(session_id, username, content)
     if partner in connected:
         socketio.emit("message", {
-            "from": users[sid]["username"],
+            "from": username,
             "emotion": users[sid]["emotion"],
-            "message": data["message"]
+            "message": content
         }, to=partner)
 
 @socketio.on("leave_chat")
@@ -411,6 +482,7 @@ def on_leave_queue():
 def on_disconnect():
     sid = request.sid
     connected.discard(sid)
+    chat_sessions.pop(sid, None)
     if sid in pairs:
         partner = pairs.pop(sid)
         if partner in pairs:
@@ -448,6 +520,83 @@ def on_report(data):
     conn.commit()
     cur.close()
     conn.close()
+
+# ===== ROUTES ADMIN BAN =====
+
+@app.route("/api/admin/ban", methods=["POST"])
+def admin_ban():
+    if not check_admin(request):
+        return jsonify({"error": "Non autorisé"}), 401
+    data = request.json
+    username = data.get("username", "").strip()
+    reason = data.get("reason", "Violation des règles")
+    days = int(data.get("days", 7))
+    if not username:
+        return jsonify({"error": "Username requis"}), 400
+    banned_until = datetime.now() + timedelta(days=days)
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO bans (username, reason, banned_until)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (username) DO UPDATE SET reason = %s, banned_until = %s
+    """, (username, reason, banned_until, reason, banned_until))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"success": True, "banned_until": banned_until.strftime("%d/%m/%Y")})
+
+@app.route("/api/admin/unban", methods=["POST"])
+def admin_unban():
+    if not check_admin(request):
+        return jsonify({"error": "Non autorisé"}), 401
+    data = request.json
+    username = data.get("username", "").strip()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM bans WHERE username = %s", (username,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route("/api/admin/conversations")
+def admin_conversations():
+    if not check_admin(request):
+        return jsonify({"error": "Non autorisé"}), 401
+    username = request.args.get("username", "")
+    conn = get_db()
+    cur = conn.cursor()
+    if username:
+        cur.execute("""
+            SELECT session_id, username, content, created_at
+            FROM messages
+            WHERE session_id IN (
+                SELECT DISTINCT session_id FROM messages WHERE username = %s
+            )
+            ORDER BY created_at ASC
+        """, (username,))
+    else:
+        cur.execute("""
+            SELECT session_id, username, content, created_at
+            FROM messages ORDER BY created_at DESC LIMIT 100
+        """)
+    messages = [dict(row) for row in cur.fetchall()]
+    cur.close()
+    conn.close()
+    return jsonify({"messages": messages})
+
+@app.route("/api/admin/bans")
+def admin_bans():
+    if not check_admin(request):
+        return jsonify({"error": "Non autorisé"}), 401
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM bans ORDER BY created_at DESC")
+    bans = [dict(row) for row in cur.fetchall()]
+    cur.close()
+    conn.close()
+    return jsonify({"bans": bans})
 
 # ===== RUN =====
 if __name__ == "__main__":
