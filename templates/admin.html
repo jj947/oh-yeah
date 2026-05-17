@@ -7,188 +7,85 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-    --bg: #050508;
-    --surface: #0d0d14;
-    --border: rgba(255,255,255,0.07);
-    --blue: #3b82f6;
-    --purple: #8b5cf6;
-    --green: #22c55e;
-    --red: #ef4444;
-    --gold: #f59e0b;
-    --text: #e2e8f0;
+    --bg: #050508; --surface: #0d0d14; --border: rgba(255,255,255,0.07);
+    --blue: #3b82f6; --purple: #8b5cf6; --green: #22c55e;
+    --red: #ef4444; --gold: #f59e0b; --text: #e2e8f0;
     --muted: rgba(255,255,255,0.35);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    min-height: 100vh;
-    padding: 32px 20px;
-}
-
-/* LOGIN */
-.login-wrap {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.login-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 36px 32px;
-    width: 100%;
-    max-width: 360px;
-    text-align: center;
-}
-.login-box h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 22px;
-    margin-bottom: 6px;
-}
+body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; min-height: 100vh; padding: 32px 20px; }
+.login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; width: 100%; max-width: 360px; text-align: center; }
+.login-box h1 { font-family: 'Syne', sans-serif; font-size: 22px; margin-bottom: 6px; }
 .login-box p { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
-.login-box input {
-    width: 100%; padding: 12px 14px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border);
-    border-radius: 10px; color: white;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px; margin-bottom: 12px;
-}
+.login-box input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; color: white; font-family: 'JetBrains Mono', monospace; font-size: 14px; margin-bottom: 12px; }
 .login-box input:focus { outline: none; border-color: var(--blue); }
-.login-box button {
-    width: 100%; padding: 12px;
-    background: linear-gradient(135deg, var(--blue), var(--purple));
-    border: none; border-radius: 10px;
-    color: white; font-family: 'Syne', sans-serif;
-    font-weight: 700; font-size: 15px; cursor: pointer;
-}
-.login-error {
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.3);
-    color: #fca5a5; padding: 10px; border-radius: 8px;
-    font-size: 13px; margin-top: 10px; display: none;
-}
-
-/* DASHBOARD */
-.dash { display: none; max-width: 900px; margin: 0 auto; }
-.dash-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 32px; padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-}
+.login-box button { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--blue), var(--purple)); border: none; border-radius: 10px; color: white; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; }
+.login-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 10px; border-radius: 8px; font-size: 13px; margin-top: 10px; display: none; }
+.dash { display: none; max-width: 960px; margin: 0 auto; }
+.dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
 .dash-header h1 { font-family: 'Syne', sans-serif; font-size: 24px; }
 .dash-header span { color: var(--muted); font-size: 12px; }
-.logout-btn {
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.3);
-    color: var(--red); padding: 8px 16px;
-    border-radius: 8px; cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 14px;
-    margin-bottom: 32px;
-}
-.stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-}
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-}
+.logout-btn { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--red); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 32px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
 .stat-card.blue::before { background: var(--blue); }
 .stat-card.purple::before { background: var(--purple); }
 .stat-card.green::before { background: var(--green); }
 .stat-card.gold::before { background: var(--gold); }
 .stat-card.red::before { background: var(--red); }
-
 .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
 .stat-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; }
-.stat-value.blue { color: var(--blue); }
-.stat-value.purple { color: var(--purple); }
-.stat-value.green { color: var(--green); }
-.stat-value.gold { color: var(--gold); }
+.stat-value.blue { color: var(--blue); } .stat-value.purple { color: var(--purple); }
+.stat-value.green { color: var(--green); } .stat-value.gold { color: var(--gold); }
 .stat-value.red { color: var(--red); }
-.stat-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
-
-.section-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 16px; font-weight: 700;
-    margin-bottom: 14px;
-    display: flex; align-items: center; gap: 8px;
-}
-.section-title::after {
-    content: '';
-    flex: 1; height: 1px;
-    background: var(--border);
-}
-
-.users-table {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    margin-bottom: 32px;
-}
-.users-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.users-table th {
-    padding: 12px 16px;
-    text-align: left;
-    color: var(--muted);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 400;
-}
-.users-table td {
-    padding: 11px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-.users-table tr:last-child td { border-bottom: none; }
-.users-table tr:hover td { background: rgba(255,255,255,0.02); }
-.badge {
-    display: inline-block; padding: 2px 8px;
-    border-radius: 20px; font-size: 11px; font-weight: 700;
-}
+.section-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 32px; }
+.table-wrap table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-wrap th { padding: 12px 16px; text-align: left; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); font-weight: 400; }
+.table-wrap td { padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+.table-wrap tr:last-child td { border-bottom: none; }
+.table-wrap tr:hover td { background: rgba(255,255,255,0.02); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
 .badge-premium { background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
 .badge-free { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
-
-.refresh-btn {
-    background: rgba(59,130,246,0.1);
-    border: 1px solid rgba(59,130,246,0.3);
-    color: var(--blue); padding: 8px 16px;
-    border-radius: 8px; cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px; margin-bottom: 24px;
-}
-.refresh-btn:hover { background: rgba(59,130,246,0.2); }
-
-.live-dot {
-    display: inline-block;
-    width: 8px; height: 8px;
-    background: var(--green);
-    border-radius: 50%;
-    margin-right: 6px;
-    animation: blink 1.5s infinite;
-}
+.badge-banned { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+.refresh-btn { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: var(--blue); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin-bottom: 24px; }
+.live-dot { display: inline-block; width: 8px; height: 8px; background: var(--green); border-radius: 50%; margin-right: 6px; animation: blink 1.5s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
 .empty { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; }
+.action-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: 'JetBrains Mono', monospace; transition: all 0.2s; }
+.action-btn:hover { border-color: var(--blue); color: var(--blue); }
+.action-btn.danger:hover { border-color: var(--red); color: var(--red); }
+.action-btn.success:hover { border-color: var(--green); color: var(--green); }
+
+/* MODALE BAN */
+#ban-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999; justify-content: center; align-items: center; padding: 20px; }
+#ban-modal.show { display: flex; }
+.ban-card { background: #0f0f1a; border: 1px solid var(--border); border-radius: 20px; padding: 28px; width: 100%; max-width: 380px; }
+.ban-card h3 { font-family: 'Syne', sans-serif; font-size: 18px; margin-bottom: 16px; color: var(--red); }
+.ban-card label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; margin-top: 12px; }
+.ban-card input, .ban-card select { width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; color: white; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.ban-card input:focus, .ban-card select:focus { outline: none; border-color: var(--red); }
+.ban-card select option { background: #1a1a2e; }
+.ban-actions { display: flex; gap: 8px; margin-top: 20px; }
+.ban-actions button { flex: 1; padding: 11px; border: none; border-radius: 10px; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; }
+.btn-ban { background: linear-gradient(135deg, var(--red), #c0392b); color: white; }
+.btn-cancel { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--muted); }
+
+/* MODALE CONVERSATIONS */
+#conv-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 999; justify-content: center; align-items: center; padding: 20px; }
+#conv-modal.show { display: flex; }
+.conv-card { background: #0f0f1a; border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; max-width: 560px; max-height: 80vh; display: flex; flex-direction: column; }
+.conv-card h3 { font-family: 'Syne', sans-serif; font-size: 18px; margin-bottom: 16px; }
+.conv-messages { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; border: 1px solid var(--border); }
+.conv-msg { margin-bottom: 8px; font-size: 13px; line-height: 1.5; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.03); }
+.conv-msg .who { font-weight: 700; color: var(--blue); margin-right: 6px; }
+.conv-msg .time { font-size: 11px; color: var(--muted); margin-left: 6px; }
+.conv-sep { text-align: center; font-size: 11px; color: var(--muted); margin: 10px 0; border-top: 1px solid var(--border); padding-top: 10px; }
+.conv-close { margin-top: 14px; width: 100%; padding: 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 10px; color: var(--muted); cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -217,76 +114,75 @@ body {
         </div>
     </div>
 
-    <!-- STATS -->
     <div class="stats-grid">
-        <div class="stat-card blue">
-            <div class="stat-label">Total inscrits</div>
-            <div class="stat-value blue" id="s-total">—</div>
-            <div class="stat-sub">depuis le début</div>
-        </div>
-        <div class="stat-card green">
-            <div class="stat-label">Inscrits aujourd'hui</div>
-            <div class="stat-value green" id="s-today">—</div>
-            <div class="stat-sub">dernières 24h</div>
-        </div>
-        <div class="stat-card purple">
-            <div class="stat-label">Inscrits cette semaine</div>
-            <div class="stat-value purple" id="s-week">—</div>
-            <div class="stat-sub">7 derniers jours</div>
-        </div>
-        <div class="stat-card gold">
-            <div class="stat-label">Membres Premium</div>
-            <div class="stat-value gold" id="s-premium">—</div>
-            <div class="stat-sub">abonnés actifs</div>
-        </div>
-        <div class="stat-card green">
-            <div class="stat-label"><span class="live-dot"></span>Connectés live</div>
-            <div class="stat-value green" id="s-live">—</div>
-            <div class="stat-sub">en ce moment</div>
-        </div>
-        <div class="stat-card gold">
-            <div class="stat-label">Pièces en circulation</div>
-            <div class="stat-value gold" id="s-coins">—</div>
-            <div class="stat-sub">total utilisateurs</div>
-        </div>
+        <div class="stat-card blue"><div class="stat-label">Total inscrits</div><div class="stat-value blue" id="s-total">—</div></div>
+        <div class="stat-card green"><div class="stat-label">Aujourd'hui</div><div class="stat-value green" id="s-today">—</div></div>
+        <div class="stat-card purple"><div class="stat-label">Cette semaine</div><div class="stat-value purple" id="s-week">—</div></div>
+        <div class="stat-card gold"><div class="stat-label">Premium</div><div class="stat-value gold" id="s-premium">—</div></div>
+        <div class="stat-card green"><div class="stat-label"><span class="live-dot"></span>Live</div><div class="stat-value green" id="s-live">—</div></div>
+        <div class="stat-card gold"><div class="stat-label">Pièces totales</div><div class="stat-value gold" id="s-coins">—</div></div>
+        <div class="stat-card red"><div class="stat-label">Bannis actifs</div><div class="stat-value red" id="s-bans">—</div></div>
     </div>
 
-    <!-- DERNIERS INSCRITS -->
+    <!-- UTILISATEURS -->
     <div class="section-title">Derniers inscrits</div>
-    <div class="users-table">
+    <div class="table-wrap">
         <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Pseudo</th>
-                    <th>Email</th>
-                    <th>Pièces</th>
-                    <th>Statut</th>
-                    <th>Inscrit le</th>
-                </tr>
-            </thead>
-            <tbody id="users-tbody">
-                <tr><td colspan="6" class="empty">Chargement...</td></tr>
-            </tbody>
+            <thead><tr><th>#</th><th>Pseudo</th><th>Email</th><th>Pièces</th><th>Statut</th><th>Inscrit le</th><th>Actions</th></tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="7" class="empty">Chargement...</td></tr></tbody>
         </table>
     </div>
 
     <!-- SIGNALEMENTS -->
     <div class="section-title">Signalements récents</div>
-    <div class="users-table">
+    <div class="table-wrap">
         <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Utilisateur</th>
-                    <th>Raison</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody id="reports-tbody">
-                <tr><td colspan="4" class="empty">Chargement...</td></tr>
-            </tbody>
+            <thead><tr><th>#</th><th>Signalé par</th><th>Raison</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="reports-tbody"><tr><td colspan="5" class="empty">Chargement...</td></tr></tbody>
         </table>
+    </div>
+
+    <!-- BANNIS -->
+    <div class="section-title">Utilisateurs bannis</div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Pseudo</th><th>Raison</th><th>Banni jusqu'au</th><th>Actions</th></tr></thead>
+            <tbody id="bans-tbody"><tr><td colspan="4" class="empty">Chargement...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODALE BAN -->
+<div id="ban-modal">
+    <div class="ban-card">
+        <h3>🚫 Bannir un utilisateur</h3>
+        <label>Pseudo</label>
+        <input id="ban-username" type="text" placeholder="Pseudo exact">
+        <label>Durée</label>
+        <select id="ban-days">
+            <option value="1">1 jour</option>
+            <option value="3">3 jours</option>
+            <option value="7" selected>1 semaine</option>
+            <option value="14">2 semaines</option>
+            <option value="30">1 mois</option>
+            <option value="365">1 an</option>
+            <option value="36500">Permanent</option>
+        </select>
+        <label>Raison</label>
+        <input id="ban-reason" type="text" placeholder="Raison du ban">
+        <div class="ban-actions">
+            <button class="btn-cancel" onclick="closeBan()">Annuler</button>
+            <button class="btn-ban" onclick="submitBan()">🚫 Bannir</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODALE CONVERSATIONS -->
+<div id="conv-modal">
+    <div class="conv-card">
+        <h3 id="conv-title">💬 Conversations</h3>
+        <div class="conv-messages" id="conv-messages">Chargement...</div>
+        <button class="conv-close" onclick="closeConv()">Fermer</button>
     </div>
 </div>
 
@@ -295,11 +191,7 @@ let adminToken = sessionStorage.getItem("admin_token") || null;
 
 async function adminLogin() {
     const pass = document.getElementById("admin-pass").value;
-    const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({password: pass})
-    });
+    const res = await fetch("/api/admin/login", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({password: pass}) });
     if (res.ok) {
         const data = await res.json();
         adminToken = data.token;
@@ -321,13 +213,11 @@ function showDash() {
     document.getElementById("login-wrap").style.display = "none";
     document.getElementById("dash").style.display = "block";
     loadStats();
-    setInterval(loadStats, 30000); // refresh auto toutes les 30s
+    setInterval(loadStats, 30000);
 }
 
 async function loadStats() {
-    const res = await fetch("/api/admin/stats", {
-        headers: {"X-Admin-Token": adminToken}
-    });
+    const res = await fetch("/api/admin/stats", { headers: {"X-Admin-Token": adminToken} });
     if (res.status === 401) { adminLogout(); return; }
     const d = await res.json();
 
@@ -339,26 +229,31 @@ async function loadStats() {
     document.getElementById("s-coins").textContent = d.total_coins.toLocaleString("fr-FR");
     document.getElementById("last-refresh").textContent = "Mis à jour à " + new Date().toLocaleTimeString("fr-FR");
 
+    // Utilisateurs
     const tbody = document.getElementById("users-tbody");
     if (!d.recent_users || d.recent_users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty">Aucun utilisateur</td></tr>';
-        return;
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">Aucun utilisateur</td></tr>';
+    } else {
+        tbody.innerHTML = d.recent_users.map(u => `
+            <tr>
+                <td style="color:var(--muted)">#${u.id}</td>
+                <td style="font-weight:700">${u.username}</td>
+                <td style="color:var(--muted)">${u.email}</td>
+                <td style="color:var(--gold)">🪙 ${u.coins}</td>
+                <td><span class="badge ${u.is_premium ? 'badge-premium' : 'badge-free'}">${u.is_premium ? '⭐ Premium' : 'Gratuit'}</span></td>
+                <td style="color:var(--muted); font-size:12px">${new Date(u.created_at).toLocaleDateString("fr-FR")}</td>
+                <td style="display:flex; gap:6px;">
+                    <button class="action-btn" onclick="openConv('${u.username}')">💬 Convos</button>
+                    <button class="action-btn danger" onclick="openBan('${u.username}')">🚫 Ban</button>
+                </td>
+            </tr>
+        `).join("");
     }
-    tbody.innerHTML = d.recent_users.map(u => `
-        <tr>
-            <td style="color:var(--muted)">#${u.id}</td>
-            <td style="font-weight:700">${u.username}</td>
-            <td style="color:var(--muted)">${u.email}</td>
-            <td style="color:var(--gold)">🪙 ${u.coins}</td>
-            <td><span class="badge ${u.is_premium ? 'badge-premium' : 'badge-free'}">${u.is_premium ? '⭐ Premium' : 'Gratuit'}</span></td>
-            <td style="color:var(--muted); font-size:12px">${new Date(u.created_at).toLocaleDateString("fr-FR")}</td>
-        </tr>
-    `).join("");
 
     // Signalements
     const rtbody = document.getElementById("reports-tbody");
     if (!d.recent_reports || d.recent_reports.length === 0) {
-        rtbody.innerHTML = '<tr><td colspan="4" class="empty">Aucun signalement 👍</td></tr>';
+        rtbody.innerHTML = '<tr><td colspan="5" class="empty">Aucun signalement 👍</td></tr>';
     } else {
         rtbody.innerHTML = d.recent_reports.map(r => `
             <tr>
@@ -366,12 +261,108 @@ async function loadStats() {
                 <td style="font-weight:700">${r.reporter_username}</td>
                 <td style="color:var(--red)">⚑ ${r.reason}</td>
                 <td style="color:var(--muted); font-size:12px">${new Date(r.created_at).toLocaleDateString("fr-FR")}</td>
+                <td style="display:flex; gap:6px;">
+                    <button class="action-btn" onclick="openConv('${r.reporter_username}')">💬 Convos</button>
+                    <button class="action-btn danger" onclick="openBan('${r.reporter_username}')">🚫 Ban</button>
+                </td>
             </tr>
         `).join("");
     }
+
+    // Bannis
+    loadBans();
 }
 
-// Auto-login si token en session
+async function loadBans() {
+    const res = await fetch("/api/admin/bans", { headers: {"X-Admin-Token": adminToken} });
+    const d = await res.json();
+    document.getElementById("s-bans").textContent = d.bans ? d.bans.length : 0;
+    const tbody = document.getElementById("bans-tbody");
+    if (!d.bans || d.bans.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty">Aucun utilisateur banni 👍</td></tr>';
+        return;
+    }
+    tbody.innerHTML = d.bans.map(b => `
+        <tr>
+            <td style="font-weight:700"><span class="badge badge-banned">🚫</span> ${b.username}</td>
+            <td style="color:var(--muted)">${b.reason || '—'}</td>
+            <td style="color:var(--red)">${new Date(b.banned_until).toLocaleDateString("fr-FR")}</td>
+            <td><button class="action-btn success" onclick="unban('${b.username}')">✅ Débannir</button></td>
+        </tr>
+    `).join("");
+}
+
+// BAN
+function openBan(username = "") {
+    document.getElementById("ban-username").value = username;
+    document.getElementById("ban-reason").value = "";
+    document.getElementById("ban-days").value = "7";
+    document.getElementById("ban-modal").classList.add("show");
+}
+function closeBan() { document.getElementById("ban-modal").classList.remove("show"); }
+
+async function submitBan() {
+    const username = document.getElementById("ban-username").value.trim();
+    const days = document.getElementById("ban-days").value;
+    const reason = document.getElementById("ban-reason").value.trim() || "Violation des règles";
+    if (!username) { alert("Entre un pseudo"); return; }
+    const res = await fetch("/api/admin/ban", {
+        method: "POST",
+        headers: {"Content-Type":"application/json", "X-Admin-Token": adminToken},
+        body: JSON.stringify({username, days, reason})
+    });
+    const d = await res.json();
+    if (res.ok) { closeBan(); loadStats(); alert(`✅ ${username} banni jusqu'au ${d.banned_until}`); }
+    else alert("Erreur : " + d.error);
+}
+
+async function unban(username) {
+    if (!confirm(`Débannir ${username} ?`)) return;
+    await fetch("/api/admin/unban", {
+        method: "POST",
+        headers: {"Content-Type":"application/json", "X-Admin-Token": adminToken},
+        body: JSON.stringify({username})
+    });
+    loadStats();
+}
+
+// CONVERSATIONS
+async function openConv(username) {
+    document.getElementById("conv-title").textContent = `💬 Conversations de ${username}`;
+    document.getElementById("conv-messages").innerHTML = "Chargement...";
+    document.getElementById("conv-modal").classList.add("show");
+    const res = await fetch(`/api/admin/conversations?username=${encodeURIComponent(username)}`, {
+        headers: {"X-Admin-Token": adminToken}
+    });
+    const d = await res.json();
+    const box = document.getElementById("conv-messages");
+    if (!d.messages || d.messages.length === 0) {
+        box.innerHTML = '<div style="text-align:center; opacity:0.5; padding:20px;">Aucune conversation trouvée</div>';
+        return;
+    }
+    // Grouper par session
+    const sessions = {};
+    d.messages.forEach(m => {
+        if (!sessions[m.session_id]) sessions[m.session_id] = [];
+        sessions[m.session_id].push(m);
+    });
+    let html = "";
+    Object.entries(sessions).forEach(([sid, msgs]) => {
+        html += `<div class="conv-sep">Session ${sid.substring(0,8)}...</div>`;
+        msgs.forEach(m => {
+            const isTarget = m.username === username;
+            html += `<div class="conv-msg">
+                <span class="who" style="color:${isTarget ? 'var(--blue)' : 'var(--green)'}">${m.username}</span>
+                ${m.content}
+                <span class="time">${new Date(m.created_at).toLocaleTimeString("fr-FR")}</span>
+            </div>`;
+        });
+    });
+    box.innerHTML = html;
+    box.scrollTop = box.scrollHeight;
+}
+function closeConv() { document.getElementById("conv-modal").classList.remove("show"); }
+
 if (adminToken) showDash();
 </script>
 </body>
