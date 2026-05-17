@@ -49,6 +49,9 @@ def init_db():
         )
     """)
     cur.execute("""
+    ALTER TABLE reports ADD COLUMN IF NOT EXISTS reported_username TEXT
+    """)
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id SERIAL PRIMARY KEY,
             session_id TEXT,
