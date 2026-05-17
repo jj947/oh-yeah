@@ -659,6 +659,19 @@ function submitReport() {
 function initSocket() {
     socket = io(window.location.origin, {transports: ["websocket", "polling"]});
 
+    socket.on("banned", d => {
+        showSection("menu");
+        toast("🚫 Ton compte est banni jusqu'au " + d.until);
+        setTimeout(() => {
+            document.getElementById("menu").innerHTML = `
+                <div style="text-align:center; padding:20px;">
+                    <div style="font-size:48px; margin-bottom:16px;">🚫</div>
+                    <div style="font-family:'Syne',sans-serif; font-size:20px; font-weight:800; margin-bottom:10px;">Compte banni</div>
+                    <div style="opacity:0.6; font-size:14px;">Ton compte est suspendu jusqu'au<br><strong>${d.until}</strong></div>
+                </div>`;
+        }, 100);
+    });
+
     socket.on("status", t => {
         const bar = document.getElementById("status-bar");
         bar.textContent = t;
