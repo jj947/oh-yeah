@@ -43,6 +43,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS reports (
             id SERIAL PRIMARY KEY,
             reporter_username TEXT,
+            reported_username TEXT,
             reason TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -123,6 +124,26 @@ COST_NEXT_PARTNER = 10
 COST_MESSAGE = 1
 REWARD_AD = 20
 
+def is_banned(username):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT banned_until FROM bans WHERE username = %s", (username,))
+    ban = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not ban:
+        return False, None
+    banned_until = ban["banned_until"]
+    if datetime.now() < banned_until:
+        return True, banned_until
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM bans WHERE username = %s", (username,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return False, None
+
 # ===== ROUTES =====
 
 @app.route("/")
@@ -200,6 +221,11 @@ def login():
     user = get_user_by_email(email)
     if not user or user["password"] != hash_password(password):
         return jsonify({"error": "Email ou mot de passe incorrect"}), 401
+    # Vérifier le ban
+    banned, banned_until = is_banned(user["username"])
+    if banned:
+        until_str = banned_until.strftime("%d/%m/%Y à %Hh%M")
+        return jsonify({"error": f"Compte banni jusqu'au {until_str}"}), 403
     session["user_id"] = user["id"]
     return jsonify({"success": True, "user": {"id": user["id"], "username": user["username"], "coins": user["coins"], "is_premium": user["is_premium"]}})
 
@@ -296,7 +322,7 @@ def admin_stats():
     total_coins = cur.fetchone()["total"]
     cur.execute("SELECT id, username, email, coins, is_premium, created_at FROM users ORDER BY created_at DESC LIMIT 20")
     recent_users = [dict(row) for row in cur.fetchall()]
-    cur.execute("SELECT id, reporter_username, reason, created_at FROM reports ORDER BY created_at DESC LIMIT 20")
+    cur.execute("SELECT id, reporter_username, reported_username, reason, created_at FROM reports ORDER BY created_at DESC LIMIT 20")
     recent_reports = [dict(row) for row in cur.fetchall()]
     cur.execute("SELECT COUNT(*) as n FROM bans WHERE banned_until > NOW()")
     active_bans = cur.fetchone()["n"]
@@ -313,26 +339,6 @@ waiting = {}
 pairs = {}
 users = {}
 chat_sessions = {}  # sid -> session_id (pour grouper les messages d'une conversation)
-
-def is_banned(username):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT banned_until FROM bans WHERE username = %s", (username,))
-    ban = cur.fetchone()
-    cur.close()
-    conn.close()
-    if not ban:
-        return False, None
-    banned_until = ban["banned_until"]
-    if datetime.now() < banned_until:
-        return True, banned_until
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM bans WHERE username = %s", (username,))
-    conn.commit()
-    cur.close()
-    conn.close()
-    return False, None
 
 def save_message(session_id, username, content):
     try:
@@ -513,10 +519,18 @@ def on_typing(data):
 def on_report(data):
     sid = request.sid
     reason = data.get("reason", "Non spécifié")
-    username = users.get(sid, {}).get("username", "Inconnu")
+    reporter = users.get(sid, {}).get("username", "Inconnu")
+    # Récupérer le pseudo du partenaire (l'accusé)
+    reported = ""
+    partner_sid = pairs.get(sid)
+    if partner_sid and partner_sid in users:
+        reported = users[partner_sid].get("username", "Inconnu")
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("INSERT INTO reports (reporter_username, reason) VALUES (%s, %s)", (username, reason))
+    cur.execute(
+        "INSERT INTO reports (reporter_username, reported_username, reason) VALUES (%s, %s, %s)",
+        (reporter, reported, reason)
+    )
     conn.commit()
     cur.close()
     conn.close()
